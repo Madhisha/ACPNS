@@ -2,32 +2,25 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const { spawnSync } = require('child_process');
-const { MongoClient } = require('mongodb');
+const fs = require('fs');
 
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
 const PORT = 3000;
-const MONGO_URI = 'mongodb+srv://22z212:TfVGyfVhyjG8hkNJ@cluster0.gbcugd2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'; // Replace with your MongoDB Cloud URI
-const DB_NAME = 'ecampus'; // Replace with your database name
-const USERS_COLLECTION = 'users'; // Collection name
+const USERS_FILE = 'registered_users.json';
 
-let db, usersCollection;
-
-// Initialize the server and connect to MongoDB
-MongoClient.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then((client) => {
-    db = client.db(DB_NAME);
-    usersCollection = db.collection(USERS_COLLECTION);
-    app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
-    });
-  })
-  .catch((error) => console.error('Failed to connect to MongoDB:', error));
+// Initialize the server and ensure the users file exists
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+  if (!fs.existsSync(USERS_FILE)) {
+    fs.writeFileSync(USERS_FILE, JSON.stringify([])); // Initialize as an empty array
+  }
+});
 
 // Register route
-app.post('/register', async (req, res) => {
+app.post('/register', (req, res) => {
   const { rollNo, password } = req.body;
 
   try {
@@ -40,6 +33,7 @@ app.post('/register', async (req, res) => {
     }
 
     const output = pythonProcess.stdout.toString().trim();
+    console.log('Python script output:', output);
     const errorOutput = pythonProcess.stderr.toString().trim();
 
     if (errorOutput) {
@@ -48,17 +42,17 @@ app.post('/register', async (req, res) => {
     }
 
     if (output === 'Login failed.') {
+      console.log('Login failed. Invalid credentials.');
       return res.status(401).json({ message: 'Login failed. Invalid credentials.' });
     }
 
-    // Check if the user already exists
-    const existingUser = await usersCollection.findOne({ rollNo });
-    if (existingUser) {
-      return res.status(409).json({ message: 'User already registered.' });
-    }
+    // Read existing users
+    let users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
 
-    // Insert the new user
-    await usersCollection.insertOne({ rollNo, password, notifications: false, cgpa : null, marks : []});
+    // Append the new user
+    users.push({ rollNo, password, notifications: false });
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+
     res.json({ message: 'Registration successful!' });
 
   } catch (error) {
@@ -68,11 +62,17 @@ app.post('/register', async (req, res) => {
 });
 
 // Login route
-app.post('/login', async (req, res) => {
+app.post('/login', (req, res) => {
+  console.log('Login endpoint hit');
   const { rollNo, password } = req.body;
+  console.log('Received credentials:', { rollNo, password });
 
   try {
-    const user = await usersCollection.findOne({ rollNo, password });
+    // Read existing users
+    let users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+    console.log('Registered users:', users);
+
+    const user = users.find(user => user.rollNo === rollNo && user.password === password);
 
     if (user) {
       res.json(user);  // Return the user object
@@ -87,11 +87,12 @@ app.post('/login', async (req, res) => {
 });
 
 // Profile fetching route
-app.get('/profile', async (req, res) => {
+app.get('/profile', (req, res) => {
   const { rollNo } = req.query;
 
   try {
-    const user = await usersCollection.findOne({ rollNo });
+    let users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+    const user = users.find(user => user.rollNo === rollNo);
 
     if (user) {
       res.json(user);
@@ -106,13 +107,17 @@ app.get('/profile', async (req, res) => {
 });
 
 // Update notification preferences
-app.post('/notifications', async (req, res) => {
+app.post('/notifications', (req, res) => {
   const { rollNo, notifications } = req.body;
 
   try {
-    const result = await usersCollection.updateOne({ rollNo }, { $set: { notifications } });
+    // Read existing users
+    let users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+    const userIndex = users.findIndex(user => user.rollNo === rollNo);
 
-    if (result.matchedCount > 0) {
+    if (userIndex !== -1) {
+      users[userIndex].receive_notifications = notifications;
+      fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
       res.json({ message: 'Notification preference updated successfully!' });
     } else {
       res.status(404).json({ message: 'User not found.' });

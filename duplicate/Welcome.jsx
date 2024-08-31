@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
 const Welcome = () => {
-  const location = useLocation();
-  const [profile, setProfile] = useState(location.state || { rollNo: '', notifications: false });
+  const location = useLocation(); // React Router hook to access location data
+  const [profile, setProfile] = useState(location.state || { rollNo: '', notifications: false }); // Initialize state with passed data
   const [error, setError] = useState('');
 
   useEffect(() => {
+    // Check if state is not passed (direct access) and fetch from server
     if (!location.state) {
       const fetchProfile = async () => {
         try {
@@ -31,7 +32,7 @@ const Welcome = () => {
 
       fetchProfile();
     }
-  }, [location.state, profile.rollNo]);
+  }, [location.state]);
 
   const handleToggleNotifications = async () => {
     try {
@@ -59,20 +60,20 @@ const Welcome = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-green-400">
-      <h2 className="text-4xl font-bold text-white mb-6">Welcome, {profile.rollNo}!</h2>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+      <h2 className="text-2xl font-semibold mb-6">Welcome, {profile.rollNo}!</h2>
       {error && <p className="text-red-500 mb-4">{error}</p>}
-      <div className="bg-white p-10 rounded-2xl shadow-2xl max-w-md w-full text-center">
-        <p className="text-lg font-medium text-gray-800">Roll No: {profile.rollNo}</p>
-        <div className="mt-6">
-          <label className="flex items-center justify-center space-x-3">
+      <div className="bg-white p-8 rounded-lg shadow-lg">
+        <p>Roll No: {profile.rollNo}</p>
+        <div className="mt-4">
+          <label className="flex items-center">
             <input
               type="checkbox"
               checked={profile.notifications}
               onChange={handleToggleNotifications}
-              className="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out"
+              className="form-checkbox"
             />
-            <span className="text-gray-700 text-lg">Receive Notifications</span>
+            <span className="ml-2">Receive Notifications</span>
           </label>
         </div>
       </div>
