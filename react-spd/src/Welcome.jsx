@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom'; // Use useNavigate instead of useHistory
 
 const Welcome = () => {
   const location = useLocation();
+  const navigate = useNavigate(); // Use useNavigate for navigation
   const [profile, setProfile] = useState(location.state || { rollNo: '', notifications: false });
   const [error, setError] = useState('');
 
@@ -58,11 +59,18 @@ const Welcome = () => {
     }
   };
 
+  const handleLogout = () => {
+    // Clear any stored user data if necessary (e.g., local storage or context)
+    // Redirect to the login page
+    navigate('/'); // Use navigate instead of history.push('/login')
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-green-400">
       <h2 className="text-4xl font-bold text-white mb-6">Welcome, {profile.rollNo}!</h2>
       {error && <p className="text-red-500 mb-4">{error}</p>}
       <div className="bg-white p-10 rounded-2xl shadow-2xl max-w-md w-full text-center">
+      {/* <Avatar src="/broken-image.jpg" /> */}
         <p className="text-lg font-medium text-gray-800">Roll No: {profile.rollNo}</p>
         <div className="mt-6">
           <label className="flex items-center justify-center space-x-3">
@@ -75,6 +83,12 @@ const Welcome = () => {
             <span className="text-gray-700 text-lg">Receive Notifications</span>
           </label>
         </div>
+        <button
+          onClick={handleLogout}
+          className="mt-6 px-6 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-150 ease-in-out"
+        >
+          Logout
+        </button>
       </div>
     </div>
   );

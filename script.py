@@ -64,17 +64,28 @@ def get_attendance_data(user):
         # Check if attendance is in updating state
         attendance_update = attendance_page_soup.find('span', {'id': 'Message'})
 
-        attendance_data = []
+        attendance_date = None  # Variable to store the date (ATTENDANCE PERCENTAGE TO)
         if not attendance_update:
             attendance_table = attendance_page_soup.find('table', {'id': 'PDGcourpercView'})
             
-            headers = [header.text for header in attendance_table.find_all('tr')[0].find_all('td')]
+            headers = [header.text.strip() for header in attendance_table.find_all('tr')[0].find_all('td')]
             rows = attendance_table.find_all('tr', {'onmouseover': "javascript:prettyDG_changeBackColor(this, true);"})
-            
-            for row in rows:
-                cells = row.find_all('td')
+
+            if rows:
+                # Process only the first row
+                first_row = rows[0]
+                cells = first_row.find_all('td')
                 row_data = [cell.text.strip() for cell in cells]
-                attendance_data.append(dict(zip(headers, row_data)))
+                
+                # Find the index of the "ATTENDANCE PERCENTAGE TO" header
+                # Adjust this if the header is different or use a relevant label
+                date_index = headers.index('ATTENDANCE PERCENTAGE TO')
+                
+                # Extract the date value from the first row
+                attendance_data = row_data[date_index]
+
+        # Now, attendance_date contains the date value from the "ATTENDANCE PERCENTAGE TO" column
+        print("Attendance Date (ATTENDANCE PERCENTAGE TO):", attendance_data)
         
         test_timetable_data(session)
         seating_allotment_data(session)
@@ -172,24 +183,35 @@ def cal_cgpa(data, user):
     except Exception as e:
         print(f"Error calculating CGPA for user {user['rollNo']}: {e}")
 
-# Main logic
+attendance_changed = False
+
 users = user_collection.find()
 for user in users:
-    current_attendance_data = get_attendance_data(user)
-    if current_attendance_data:
-        # Check for changes
-        previous_data = list(attendance_collection.find({}, {'_id': 0}))
+    if user['notifications'] == True:
+        current_attendance_data = get_attendance_data(user)
+        if current_attendance_data:
+            # Check for changes
+            previous_data = list(attendance_collection.find({}, {'_id': 0}))
 
-        if current_attendance_data != previous_data:  # Compare current and previous data
-            # Store current data
-            attendance_collection.delete_many({})  # Clear previous data
-            attendance_collection.insert_many(current_attendance_data)
-            
-            # Send an email notification to the user
+            # Assuming previous_data contains dictionaries with the date format
+            previous_attendance_date = previous_data[0]['attendance_date'] if previous_data else None
+
+            if current_attendance_data != previous_attendance_date:  # Compare current and previous data
+                attendance_changed = True  # Mark that a change has occurred
+
+                # Store current data
+                attendance_collection.delete_many({})  # Clear previous data
+                
+                # Create the new attendance entry
+                attendance_entry = {'attendance_date': current_attendance_data}
+                attendance_collection.insert_one(attendance_entry)  # Insert the new attendance data
+
+# If attendance changed, send emails to all users
+if attendance_changed:
+    for user in users:
+        if user['notifications'] == True:
             recipient_email = user['rollNo'] + "@psgtech.ac.in"
             send_email("Attendance Update", "The attendance data has changed.", [recipient_email])
             print(f"Email sent regarding attendance update to {recipient_email}.")
-        else:
-            print(f"No changes in attendance data for user {user['rollNo']}.")
-    else:
-        print(f"Attendance data not available for user {user['rollNo']}.")
+else:
+    print("No changes in attendance data for any user.")

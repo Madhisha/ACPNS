@@ -1,16 +1,128 @@
 import requests
 from bs4 import BeautifulSoup
+from pymongo import MongoClient
+import smtplib
+from email.mime.text import MIMEText
+import re
+import os
 
+# MongoDB connection
+client = MongoClient("mongodb+srv://22z212:TfVGyfVhyjG8hkNJ@cluster0.gbcugd2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+db = client['ecampus']  # Use your database name
+user_collection = db['users']  # Use your collection name for users
+attendance_collection = db['attendance']
+result_collection = db['result']
 
+# Email setup
+def send_email(subject, body, recipient_list):
+    sender_email = "22z212@psgtech.ac.in"
+    password = "cheran#212"  # Use environment variable for security
 
-url = 'https://en.wikipedia.org/wiki/List_of_largest_companies_in_India'
+    msg = MIMEText(body)
+    msg['Subject'] = subject
+    msg['From'] = sender_email
+    msg['To'] = ", ".join(recipient_list)
 
-page=requests.get(url)
+    try:
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:  # Use your SMTP server details
+            server.starttls()
+            server.login(sender_email, password)
+            server.sendmail(sender_email, recipient_list, msg.as_string())
+    except Exception as e:
+        print(f"Error sending email: {e}")
 
-soup=BeautifulSoup(page.content,'html')
+# Function to get current attendance data
+def get_attendance_data(user):
+    session = requests.Session()
+    login_url = 'https://ecampus.psgtech.ac.in/studzone2/'
 
+    try:
+        # Perform login
+        response = session.get(login_url)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        viewstate = soup.find('input', {'name': '__VIEWSTATE'})['value']
+        viewstate_generator = soup.find('input', {'name': '__VIEWSTATEGENERATOR'})['value']
+        event_validation = soup.find('input', {'name': '__EVENTVALIDATION'})['value']
 
+        login_data = {
+            '__VIEWSTATE': viewstate,
+            '__VIEWSTATEGENERATOR': viewstate_generator,
+            '__EVENTVALIDATION': event_validation,
+            'txtusercheck': user['rollNo'],
+            'txtpwdcheck': user['password'],
+            'abcd3': 'Login'
+        }
 
-soup.find_all('table')
-# <table class="wikitable sortable jquery-tablesorter" style="text-align:right;">
-# </table>
+        response = session.post(login_url, data=login_data)
+        if "login failed" in response.text.lower():
+            print(f"Login failed for user {user['rollNo']}.")
+            return None
+
+        attendance_page_response = session.get("https://ecampus.psgtech.ac.in/studzone2/AttWfPercView.aspx")
+        attendance_page_soup = BeautifulSoup(attendance_page_response.content, 'html.parser')
+
+        # Check if attendance is in updating state
+        attendance_update = attendance_page_soup.find('span', {'id': 'Message'})
+
+        attendance_date = None  # Variable to store the date (ATTENDANCE PERCENTAGE TO)
+        if not attendance_update:
+            attendance_table = attendance_page_soup.find('table', {'id': 'PDGcourpercView'})
+            
+            headers = [header.text.strip() for header in attendance_table.find_all('tr')[0].find_all('td')]
+            rows = attendance_table.find_all('tr', {'onmouseover': "javascript:prettyDG_changeBackColor(this, true);"})
+
+            if rows:
+                # Process only the first row
+                first_row = rows[0]
+                cells = first_row.find_all('td')
+                row_data = [cell.text.strip() for cell in cells]
+                
+                # Find the index of the "ATTENDANCE PERCENTAGE TO" header
+                # Adjust this if the header is different or use a relevant label
+                date_index = headers.index('ATTENDANCE PERCENTAGE TO')
+                
+                # Extract the date value from the first row
+                attendance_data = row_data[date_index]
+
+        # Now, attendance_date contains the date value from the "ATTENDANCE PERCENTAGE TO" column
+        print("Attendance Date (ATTENDANCE PERCENTAGE TO):", attendance_data)
+
+        
+        return attendance_data if attendance_data else None
+
+    except Exception as e:
+        print(f"Error fetching attendance data: {e}")
+        return None
+
+attendance_changed = False
+
+users = user_collection.find()
+for user in users:
+    if user['notifications'] == True:
+        current_attendance_data = get_attendance_data(user)
+        if current_attendance_data:
+            # Check for changes
+            previous_data = list(attendance_collection.find({}, {'_id': 0}))
+
+            # Assuming previous_data contains dictionaries with the date format
+            previous_attendance_date = previous_data[0]['attendance_date'] if previous_data else None
+
+            if current_attendance_data != previous_attendance_date:  # Compare current and previous data
+                attendance_changed = True  # Mark that a change has occurred
+
+                # Store current data
+                attendance_collection.delete_many({})  # Clear previous data
+                
+                # Create the new attendance entry
+                attendance_entry = {'attendance_date': current_attendance_data}
+                attendance_collection.insert_one(attendance_entry)  # Insert the new attendance data
+
+# If attendance changed, send emails to all users
+if attendance_changed:
+    for user in users:
+        if user['notifications'] == True:
+            recipient_email = user['rollNo'] + "@psgtech.ac.in"
+            send_email("Attendance Update", "The attendance data has changed.", [recipient_email])
+            print(f"Email sent regarding attendance update to {recipient_email}.")
+else:
+    print("No changes in attendance data for any user.")
