@@ -11,7 +11,7 @@ const Login = () => {
     event.preventDefault();
 
     try {
-      const response = await fetch('http://localhost:3000/login', {
+      const response = await fetch('http://localhost:5000/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -27,6 +27,7 @@ const Login = () => {
         setError(errorData.message || 'Login failed. Please check your credentials.');
       }
     } catch (error) {
+      console.error('Error during login:', error);
       setError('Error: Could not connect to the server. Please try again later.');
     }
   };
@@ -56,18 +57,32 @@ const Login = () => {
             required
           />
         </div>
+
+        {/* Login Button */}
         <button
           type="submit"
-          className="w-full py-3 px-6 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition duration-300"
+          className="group/button w-full relative inline-flex items-center justify-center overflow-hidden rounded-md bg-blue-600 backdrop-blur-lg px-6 py-3 text-base font-semibold text-white transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl hover:shadow-blue-700/50 border border-blue-800"
         >
-          Login
+          <span className="text-lg">Login</span>
+          <div
+            className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-13deg)_translateX(-100%)] group-hover/button:duration-1000 group-hover/button:[transform:skew(-13deg)_translateX(100%)]"
+          >
+            <div className="relative h-full w-10 bg-blue-700/30"></div>
+          </div>
         </button>
+
+        {/* Register Button */}
         <button
           type="button"
           onClick={() => navigate('/register')}
-          className="w-full py-3 px-6 bg-gray-600 text-white font-bold rounded-lg hover:bg-gray-700 transition duration-300 mt-4"
+          className="group/button w-full relative inline-flex items-center justify-center overflow-hidden rounded-md bg-green-600 backdrop-blur-lg px-6 py-3 text-base font-semibold text-white transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl hover:shadow-green-700/50 border border-green-800 mt-4"
         >
-          Register
+          <span className="text-lg">Register</span>
+          <div
+            className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-13deg)_translateX(-100%)] group-hover/button:duration-1000 group-hover/button:[transform:skew(-13deg)_translateX(100%)]"
+          >
+            <div className="relative h-full w-10 bg-green-700/30"></div>
+          </div>
         </button>
       </form>
     </div>

@@ -11,7 +11,7 @@ const Registration = () => {
     event.preventDefault();
 
     try {
-      const response = await fetch('http://localhost:3000/register', {
+      const response = await fetch('http://localhost:5000/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,6 +56,7 @@ const Registration = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            title="Enter eCampus password"
             required
           />
         </div>

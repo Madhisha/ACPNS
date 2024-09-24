@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom'; // Use useNavigate instead of useHistory
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const Welcome = () => {
   const location = useLocation();
-  const navigate = useNavigate(); // Use useNavigate for navigation
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(location.state || { rollNo: '', notifications: false });
   const [error, setError] = useState('');
 
@@ -11,7 +11,7 @@ const Welcome = () => {
     if (!location.state) {
       const fetchProfile = async () => {
         try {
-          const response = await fetch(`http://localhost:3000/profile?rollNo=${profile.rollNo}`, {
+          const response = await fetch(`http://localhost:5000/profile?rollNo=${profile.rollNo}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -37,7 +37,7 @@ const Welcome = () => {
   const handleToggleNotifications = async () => {
     try {
       const updatedPreference = !profile.notifications;
-      const response = await fetch('http://localhost:3000/notifications', {
+      const response = await fetch('http://localhost:5000/notifications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -60,32 +60,36 @@ const Welcome = () => {
   };
 
   const handleLogout = () => {
-    // Clear any stored user data if necessary (e.g., local storage or context)
-    // Redirect to the login page
-    navigate('/'); // Use navigate instead of history.push('/login')
+    navigate('/');
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-green-400">
-      <h2 className="text-4xl font-bold text-white mb-6">Welcome, {profile.rollNo}!</h2>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
-      <div className="bg-white p-10 rounded-2xl shadow-2xl max-w-md w-full text-center">
-      {/* <Avatar src="/broken-image.jpg" /> */}
-        <p className="text-lg font-medium text-gray-800">Roll No: {profile.rollNo}</p>
-        <div className="mt-6">
-          <label className="flex items-center justify-center space-x-3">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-600 to-green-500 p-6 md:p-0">
+      <h2 className="text-5xl md:text-6xl font-extrabold text-white mb-8 text-center">Welcome, {profile.rollNo}!</h2>
+      {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
+      
+      <div className="bg-white p-10 rounded-3xl shadow-2xl max-w-lg w-full text-center transform transition duration-500 hover:scale-105">
+        <p className="text-lg font-semibold text-gray-700 mb-6">Roll No: {profile.rollNo}</p>
+
+        {/* Notifications Toggle */}
+        <div className="flex items-center justify-center space-x-3 mb-6">
+          <span className="text-lg text-gray-700">Receive Notifications</span>
+          <label className="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"
               checked={profile.notifications}
               onChange={handleToggleNotifications}
-              className="form-checkbox h-5 w-5 text-blue-600 transition duration-150 ease-in-out"
+              className="sr-only peer"
             />
-            <span className="text-gray-700 text-lg">Receive Notifications</span>
+            <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-gray-700 peer-checked:bg-blue-600"></div>
+            <span className="absolute top-[2px] left-[2px] bg-white w-5 h-5 rounded-full transition-transform duration-300 peer-checked:translate-x-full peer-checked:border-white dark:border-gray-600"></span>
           </label>
         </div>
+
+        {/* Logout Button */}
         <button
           onClick={handleLogout}
-          className="mt-6 px-6 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition duration-150 ease-in-out"
+          className="mt-6 w-full py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white text-lg font-semibold rounded-full shadow-lg hover:from-red-600 hover:to-pink-600 transform hover:scale-105 transition duration-300"
         >
           Logout
         </button>
