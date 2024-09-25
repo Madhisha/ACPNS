@@ -64,16 +64,16 @@ const Welcome = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-600 to-green-500 p-6 md:p-0">
-      <h2 className="text-5xl md:text-6xl font-extrabold text-white mb-8 text-center">Welcome, {profile.rollNo}!</h2>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-purple-600 to-blue-500 p-6">
+      <h2 className="text-5xl md:text-6xl font-bold text-white mb-8 text-center">Welcome, {profile.rollNo}!</h2>
       {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
       
-      <div className="bg-white p-10 rounded-3xl shadow-2xl max-w-lg w-full text-center transform transition duration-500 hover:scale-105">
-        <p className="text-lg font-semibold text-gray-700 mb-6">Roll No: {profile.rollNo}</p>
+      <div className="bg-white p-10 rounded-2xl shadow-lg max-w-lg w-full text-center transform transition duration-500 hover:scale-105">
+        <p className="text-lg font-semibold text-gray-800 mb-6">Roll No: {profile.rollNo}</p>
 
         {/* Notifications Toggle */}
         <div className="flex items-center justify-center space-x-3 mb-6">
-          <span className="text-lg text-gray-700">Receive Notifications</span>
+          <span className="text-lg text-gray-800">Receive Notifications</span>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"

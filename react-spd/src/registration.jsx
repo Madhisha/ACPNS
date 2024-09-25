@@ -35,9 +35,11 @@ const Registration = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-green-400 to-blue-500">
-      <h2 className="text-3xl font-bold text-white mb-6">Registration Page</h2>
-      <form onSubmit={handleSubmit} className="bg-white p-10 rounded-2xl shadow-lg max-w-md w-full">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-500 px-4">
+      <h2 className="text-5xl md:text-7xl font-extrabold text-white mb-8 text-center">
+        Registration Page
+      </h2>
+      <form onSubmit={handleSubmit} className="bg-white p-8 md:p-12 rounded-2xl shadow-xl max-w-lg w-full">
         {error && <p className="text-red-500 mb-4">{error}</p>}
         <div className="mb-6">
           <label className="block text-gray-700 font-semibold mb-2">Roll No:</label>
@@ -45,7 +47,7 @@ const Registration = () => {
             type="text"
             value={rollNo}
             onChange={(e) => setRollNo(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300"
             required
           />
         </div>
@@ -55,16 +57,18 @@ const Registration = () => {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300"
             title="Enter eCampus password"
             required
           />
         </div>
         <button
           type="submit"
-          className="w-full py-3 px-6 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition duration-300"
+          className="relative inline-flex items-center justify-center w-full py-4 px-6 text-lg font-bold text-white bg-purple-600 rounded-lg shadow-lg overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-purple-700/50 border border-purple-700 group"
         >
-          Register
+          <span className="relative z-10">Register</span>
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out"></div>
+          <div className="absolute inset-0 w-1/2 bg-white opacity-10 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-in-out"></div>
         </button>
       </form>
     </div>

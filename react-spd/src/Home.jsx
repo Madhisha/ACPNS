@@ -5,35 +5,39 @@ const Home = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-600 to-green-500 px-4 md:px-0">
-      <h1 className="text-4xl md:text-6xl font-bold text-white mb-8 text-center">
-        Welcome to Our College Portal
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-500 px-4 md:px-0">
+      <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-6 text-center">
+        Connect. Learn. Thrive.
       </h1>
-      <p className="text-lg md:text-2xl text-white text-center mb-8">
-        Access your attendance, timetable, seating arrangement, and CGPA details all in one place.
+      <p className="text-xl md:text-3xl text-white text-center mb-8">
+        Access your portal for attendance, timetable, seating arrangements, and CGPA details.
       </p>
-      
-      {/* Animated buttons for Login and Register */}
-      <div className="w-full max-w-sm space-y-4">
+
+      {/* Animated Buttons for Login and Register */}
+      <div className="w-full max-w-md space-y-6">
         <button
-          className="group/button w-full relative inline-flex items-center justify-center overflow-hidden rounded-md bg-gray-900/30 backdrop-blur-lg px-6 py-4 text-base font-semibold text-white transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl hover:shadow-gray-600/50 border border-white/20"
+          className="relative inline-flex items-center justify-center w-full px-6 py-4 bg-blue-600 text-lg font-semibold text-white rounded-lg overflow-hidden shadow-lg transform transition-all duration-300 group"
           onClick={() => navigate('/login')}
         >
-          <span className="text-lg">Login</span>
-          <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-13deg)_translateX(-100%)] group-hover/button:duration-1000 group-hover/button:[transform:skew(-13deg)_translateX(100%)]">
-            <div className="relative h-full w-10 bg-gray-800/20"></div>
-          </div>
+          <span className="z-10 relative">Login Now</span>
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out"></div>
+          <div className="absolute inset-0 w-1/2 bg-white opacity-10 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-in-out"></div>
         </button>
 
         <button
-          className="group/button w-full relative inline-flex items-center justify-center overflow-hidden rounded-md bg-gray-800/30 backdrop-blur-lg px-6 py-4 text-base font-semibold text-white transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-xl hover:shadow-gray-600/50 border border-white/20"
+          className="relative inline-flex items-center justify-center w-full px-6 py-4 bg-red-600 text-lg font-semibold text-white rounded-lg overflow-hidden shadow-lg transform transition-all duration-300 group"
           onClick={() => navigate('/register')}
         >
-          <span className="text-lg">Register</span>
-          <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-13deg)_translateX(-100%)] group-hover/button:duration-1000 group-hover/button:[transform:skew(-13deg)_translateX(100%)]">
-            <div className="relative h-full w-10 bg-gray-700/20"></div>
-          </div>
+          <span className="z-10 relative">Register Today</span>
+          <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-red-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out"></div>
+          <div className="absolute inset-0 w-1/2 bg-white opacity-10 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-in-out"></div>
         </button>
+      </div>
+
+      {/* Notification Phrases */}
+      <div className="mt-12 text-white text-center">
+        <h2 className="text-2xl md:text-4xl font-semibold">Stay Updated</h2>
+        <p className="mt-2 text-lg md:text-xl">"Don't miss out on important notifications. Register today!"</p>
       </div>
     </div>
   );
