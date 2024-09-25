@@ -5,7 +5,7 @@ const ThankYou = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-purple-600 relative overflow-hidden">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-[#453c5e] via-[#b398c0] to-[#7c4d8f] relative overflow-hidden">
       {/* Background text */}
       <div className="absolute inset-0 flex justify-center items-center overflow-hidden">
         <h1 className="text-9xl text-white opacity-10 transform rotate-45 animate-background-text">
@@ -19,9 +19,11 @@ const ThankYou = () => {
         </p>
         <button
           onClick={() => navigate('/')}
-          className="py-3 px-6 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-opacity-50 transition duration-300 ease-in-out transform hover:scale-105"
+          className="relative inline-flex items-center justify-center w-full py-4 px-6 text-lg font-bold text-white bg-[#5b2a6e] rounded-lg shadow-lg overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-[#362e49]/50 border border-[#5b2a6e] group"
         >
-          Go to Login
+          <span className="relative z-10">Go to Login</span>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#362e49] to-[#5b2a6e] opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out"></div>
+          <div className="absolute inset-0 w-1/2 bg-white opacity-10 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-in-out"></div>
         </button>
       </div>
     </div>
