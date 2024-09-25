@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 const Registration = () => {
   const [rollNo, setRollNo] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -37,30 +38,48 @@ const Registration = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-500 px-4">
       <h2 className="text-5xl md:text-7xl font-extrabold text-white mb-8 text-center">
-        Registration Page
+        Join the Community
       </h2>
       <form onSubmit={handleSubmit} className="bg-white p-8 md:p-12 rounded-2xl shadow-xl max-w-lg w-full">
         {error && <p className="text-red-500 mb-4">{error}</p>}
-        <div className="mb-6">
-          <label className="block text-gray-700 font-semibold mb-2">Roll No:</label>
+        <div className="relative mb-6">
           <input
             type="text"
             value={rollNo}
             onChange={(e) => setRollNo(e.target.value)}
-            className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300"
+            className="block w-full p-4 pt-6 border border-blue-400 rounded-lg text-gray-700 placeholder-transparent focus:outline-none transition duration-200 peer"
+            placeholder="Write here..."
             required
           />
+          <label
+            className="absolute top-0 left-3 px-1 text-blue-500 bg-white transform -translate-y-2.5 scale-90 peer-placeholder-shown:translate-y-3 peer-placeholder-shown:scale-100 peer-placeholder-shown:text-gray-400 transition-all duration-200"
+          >
+            Roll No
+          </label>
         </div>
-        <div className="mb-6">
-          <label className="block text-gray-700 font-semibold mb-2">Password:</label>
+        <div className="relative mb-6">
           <input
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-300"
-            title="Enter eCampus password"
+            className="block w-full p-4 pt-6 border border-blue-400 rounded-lg text-gray-700 placeholder-transparent focus:outline-none transition duration-200 peer"
+            placeholder="Write here..."
             required
           />
+          <label
+            className="absolute top-0 left-3 px-1 text-blue-500 bg-white transform -translate-y-2.5 scale-90 peer-placeholder-shown:translate-y-3 peer-placeholder-shown:scale-100 peer-placeholder-shown:text-gray-400 transition-all duration-200"
+          >
+            Password
+          </label>
+          {/* Eye Icon */}
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute inset-y-0 right-4 flex items-center text-gray-500"
+          >
+            {/* Font Awesome Icon */}
+            <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'} text-xl`}></i>
+          </button>
         </div>
         <button
           type="submit"
