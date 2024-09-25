@@ -4,6 +4,9 @@ from bson import ObjectId
 import requests
 from bs4 import BeautifulSoup
 from flask_cors import CORS
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 
 app = Flask(__name__)
@@ -151,6 +154,39 @@ def update_notifications():
         print(f"Error updating notifications: {str(e)}")
         return jsonify({"message": "Server error. Please try again later."}), 500
 
+@app.route('/send-message', methods=['POST'])
+def send_message():
+    data = request.json
+    name = data.get('name')
+    email = data.get('email')
+    message = data.get('message')
+
+    # Setup your email server settings
+    smtp_server = 'smtp.gmail.com'  # Replace with your SMTP server
+    smtp_port = 587  # Usually 587 for TLS
+    smtp_user = '22z212@psgtech.ac.in'  # Replace with your email
+    smtp_password = 'cheran#212'  # Replace with your email password
+
+    # Create the email
+    msg = MIMEMultipart()
+    msg['From'] = smtp_user
+    msg['To'] = '22z235@psgtech.ac.in'
+    msg['Subject'] = f'Message from {name}'
+
+    # Email body
+    body = f'Name: {name}\nEmail: {email}\nMessage: {message}'
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        # Send the email
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()  # Use TLS
+            server.login(smtp_user, smtp_password)
+            server.send_message(msg)
+
+        return jsonify({'message': 'Email sent successfully!'}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 if __name__ == "__main__":
