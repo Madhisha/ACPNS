@@ -16,12 +16,13 @@ const USERS_COLLECTION = 'users'; // Collection name
 let db, usersCollection;
 
 // Initialize the server and connect to MongoDB
-MongoClient.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+MongoClient.connect(MONGO_URI)
   .then((client) => {
     db = client.db(DB_NAME);
     usersCollection = db.collection(USERS_COLLECTION);
     app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
+      console.log('Connected to MongoDB and listening on port', PORT);
+      // console.log(`Server running on http://localhost:${PORT}`);
     });
   })
   .catch((error) => console.error('Failed to connect to MongoDB:', error));
