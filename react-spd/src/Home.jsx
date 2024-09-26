@@ -16,7 +16,7 @@ const Home = () => {
         className="text-xl md:text-3xl text-white text-center mb-8"
         style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 0.7)' }} // Add letter shadow here
       >
-        Access your portal for attendance, timetable, seating arrangements, and CGPA details.
+        Get notified from your portal for attendance, timetable, seating arrangements, and CGPA details.
       </p>
 
       {/* Animated Buttons for Login and Register */}

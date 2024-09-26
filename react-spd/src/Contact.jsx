@@ -33,21 +33,6 @@ const Contact = () => {
   };
 
   return (
-<<<<<<< HEAD
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-[#453c5e] via-[#b398c0] to-[#7c4d8f] px-4 md:px-0">
-      <h1
-        className="text-5xl md:text-7xl font-extrabold text-center text-white mb-8"
-        style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.7)' }} // Add text shadow to main heading
-      >
-        Get in Touch
-      </h1>
-      <p
-        className="text-xl md:text-2xl text-center text-white mb-12"
-        style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 0.5)' }} // Add text shadow to subheading
-      >
-        We’d love to hear from you! Please fill out the form below.
-      </p>
-=======
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-[#4A4063] via-[#BFACC8] to-[#783F8E] px-4 md:px-0">
       <h1 className="text-5xl md:text-7xl font-extrabold text-center text-white mb-8">Get in Touch</h1>
       <p className="text-xl md:text-2xl text-center text-white mb-12">We’d love to hear from you! Please fill out the form below.</p>
@@ -55,18 +40,11 @@ const Contact = () => {
       {alertMessage && (
         <div className="mb-4 text-lg text-center text-white">{alertMessage}</div>
       )}
->>>>>>> 706825f835f9c95d7fbe1760e24a8fceed24b753
 
       {/* Contact Form */}
       <form className="bg-white shadow-lg rounded-lg p-8 max-w-lg w-full" onSubmit={handleSubmit}>
         <div className="mb-6">
-<<<<<<< HEAD
-          <label className="block text-[#5b2a6e] text-sm font-bold mb-2" htmlFor="name">
-            Name
-          </label>
-=======
           <label className="block text-[#783F8E] text-sm font-bold mb-2" htmlFor="name">Name</label>
->>>>>>> 706825f835f9c95d7fbe1760e24a8fceed24b753
           <input
             type="text"
             name="name"
@@ -79,13 +57,7 @@ const Contact = () => {
         </div>
 
         <div className="mb-6">
-<<<<<<< HEAD
-          <label className="block text-[#5b2a6e] text-sm font-bold mb-2" htmlFor="email">
-            Email
-          </label>
-=======
           <label className="block text-[#783F8E] text-sm font-bold mb-2" htmlFor="email">Email</label>
->>>>>>> 706825f835f9c95d7fbe1760e24a8fceed24b753
           <input
             type="email"
             name="email"
@@ -98,13 +70,7 @@ const Contact = () => {
         </div>
 
         <div className="mb-6">
-<<<<<<< HEAD
-          <label className="block text-[#5b2a6e] text-sm font-bold mb-2" htmlFor="message">
-            Message
-          </label>
-=======
           <label className="block text-[#783F8E] text-sm font-bold mb-2" htmlFor="message">Message</label>
->>>>>>> 706825f835f9c95d7fbe1760e24a8fceed24b753
           <textarea
             name="message"
             value={formData.message}
@@ -125,43 +91,6 @@ const Contact = () => {
           <div className="absolute inset-0 w-1/2 bg-white opacity-10 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-in-out"></div>
         </button>
       </form>
-<<<<<<< HEAD
-
-      {/* Company Information Section */}
-      <div className="mt-12 text-center">
-        <h2
-          className="text-3xl font-bold text-white mb-4"
-          style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.7)' }} // Add text shadow to office section heading
-        >
-          Our Office
-        </h2>
-        <p
-          className="text-lg text-white"
-          style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 0.5)' }} // Add text shadow to office details
-        >
-          12345 Example Road
-        </p>
-        <p
-          className="text-lg text-white"
-          style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 0.5)' }} // Add text shadow to office details
-        >
-          City, State, 12345
-        </p>
-        <p
-          className="text-lg text-white"
-          style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 0.5)' }} // Add text shadow to office details
-        >
-          Email: contact@example.com
-        </p>
-        <p
-          className="text-lg text-white"
-          style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 0.5)' }} // Add text shadow to office details
-        >
-          Phone: (123) 456-7890
-        </p>
-      </div>
-=======
->>>>>>> 706825f835f9c95d7fbe1760e24a8fceed24b753
     </div>
   );
 };
