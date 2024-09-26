@@ -18,7 +18,7 @@ const ThankYou = () => {
           You have successfully registered. You can now log in with your new account.
         </p>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/login')}
           className="py-3 px-6 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-opacity-50 transition duration-300 ease-in-out transform hover:scale-105"
         >
           Go to Login
