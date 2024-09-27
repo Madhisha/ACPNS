@@ -7,8 +7,8 @@ const AboutUs = () => {
       <div className="relative w-full h-72 bg-cover bg-center" style={{ backgroundImage: 'url(https://source.unsplash.com/random/1920x1080)' }}>
         <div className="relative flex flex-col items-center justify-center h-full">
           <p className="text-4xl md:text-6xl font-bold text-[#5b2a6e] text-center">About Us</p>
-          <p className="mt-4 text-center max-w-xl"> 
-            ACPNS is a platform for students to get all the information about their college at one place without missing any updates from the college portal.
+          <p className="mt-4  max-w-l"> 
+            ACPNS is a platform that helps students access all their essential college information in one place. From academic schedules to important updates, ACPNS ensures students stay informed without missing anything from the college portal. With real-time notifications, students can easily keep track of their academic journey.
           </p>
         </div>
 

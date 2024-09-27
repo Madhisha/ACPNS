@@ -78,10 +78,17 @@ def register():
         new_user = {
             "rollNo": rollNo,
             "password": password,
-            "notifications": False,
+            "notifications": {
+                "attendance": False,
+                "marks": False,
+                "timetable": False,
+                "seatingArrangement": False,
+                "results": False
+            },
             "cgpa": None,
             "marks": []
         }
+
         users_collection.insert_one(new_user)
 
         return jsonify({"message": "Registration successful!"}), 200

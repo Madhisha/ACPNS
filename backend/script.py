@@ -284,35 +284,48 @@ if first_user and first_user['notifications']:
 if attendance_changed:
     users = user_collection.find()
     for user in users:
-        if user['notifications']['attendance']:
-            recipient_email = user['rollNo'] + "@psgtech.ac.in"
-            send_email("Attendance Update", "The attendance data has changed.", [recipient_email])
-            print(f"Email sent regarding attendance update to {recipient_email}.")
+        # Check if 'notifications' is a dictionary
+        if isinstance(user.get('notifications'), dict):
+            if user['notifications'].get('attendance', False):
+                recipient_email = user['rollNo'] + "@psgtech.ac.in"
+                send_email("Attendance Update", "The attendance data has changed.", [recipient_email])
+                print(f"Email sent regarding attendance update to {recipient_email}.")
+        else:
+            print(f"Skipping user {user['rollNo']}: 'notifications' is not properly structured.")
 
 # For all users, check results and calculate CGPA
 users = user_collection.find()
 for user in users:
-    if user['notifications']['results']:
-        print(user['rollNo'])
-        result_data = get_result_data(user)
-        if result_data:
-            calculate_cgpa(result_data, user)
-    if user['notifications']['marks']:
-        mark_update(user)
+    if isinstance(user.get('notifications'), dict):
+        if user['notifications'].get('results', False):
+            print(user['rollNo'])
+            result_data = get_result_data(user)
+            if result_data:
+                calculate_cgpa(result_data, user)
+        if user['notifications'].get('marks', False):
+            mark_update(user)
+    else:
+        print(f"Skipping user {user['rollNo']}: 'notifications' is not properly structured.")
 
 if timetable_changed:
     users = user_collection.find()
     for user in users:
-        if user['notifications']['timetable']:
-            print(user['rollNo'])
-            recipient_email = user['rollNo'] + "@psgtech.ac.in"
-            send_email("Timetable Update", "The test timetable has been published.", [recipient_email])
-            print(f"Email sent regarding timetable update to {recipient_email}.")
+        if isinstance(user.get('notifications'), dict):
+            if user['notifications'].get('timetable', False):
+                print(user['rollNo'])
+                recipient_email = user['rollNo'] + "@psgtech.ac.in"
+                send_email("Timetable Update", "The test timetable has been published.", [recipient_email])
+                print(f"Email sent regarding timetable update to {recipient_email}.")
+        else:
+            print(f"Skipping user {user['rollNo']}: 'notifications' is not properly structured.")
 
 if seating_changed:
     users = user_collection.find()
     for user in users:
-        if user['notifications']['seatingArrangement']:
-            recipient_email = user['rollNo'] + "@psgtech.ac.in"
-            send_email("Seating Update", "The seating allotment has been published.", [recipient_email])
-            print(f"Email sent regarding seating update to {recipient_email}.")
+        if isinstance(user.get('notifications'), dict):
+            if user['notifications'].get('seatingArrangement', False):
+                recipient_email = user['rollNo'] + "@psgtech.ac.in"
+                send_email("Seating Update", "The seating allotment has been published.", [recipient_email])
+                print(f"Email sent regarding seating update to {recipient_email}.")
+        else:
+            print(f"Skipping user {user['rollNo']}: 'notifications' is not properly structured.")
