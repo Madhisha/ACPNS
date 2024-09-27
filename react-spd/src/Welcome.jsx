@@ -11,7 +11,7 @@ const Welcome = () => {
     if (!location.state) {
       const fetchProfile = async () => {
         try {
-          const response = await fetch(`http://127.0.0.1:5000/profile?rollNo=${profile.rollNo}`, {
+          const response = await fetch(`https://notifii-backend-three.vercel.app/profile?rollNo=${profile.rollNo}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ const Welcome = () => {
   const handleToggleNotification = async (type) => {
     try {
       const updatedPreference = { ...profile.notifications, [type]: !profile.notifications[type] };
-      const response = await fetch('http://127.0.0.1:5000/notifications', {
+      const response = await fetch('https://notifii-backend-three.vercel.app/notifications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ const Welcome = () => {
     };
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/notifications', {
+      const response = await fetch('https://notifii-backend-three.vercel.app/notifications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

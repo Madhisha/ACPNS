@@ -8,7 +8,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:5000', // Flask backend
+        target: 'https://notifii-backend-three.vercel.app', // Flask backend
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       }
