@@ -13,7 +13,7 @@ const USERS_FILE = 'registered_users.json';
 
 // Initialize the server and ensure the users file exists
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on http://127.0.0.1:${PORT}`);
   if (!fs.existsSync(USERS_FILE)) {
     fs.writeFileSync(USERS_FILE, JSON.stringify([])); // Initialize as an empty array
   }

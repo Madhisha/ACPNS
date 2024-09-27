@@ -11,7 +11,7 @@ const Welcome = () => {
     if (!location.state) {
       const fetchProfile = async () => {
         try {
-          const response = await fetch(`http://localhost:3000/profile?rollNo=${profile.rollNo}`, {
+          const response = await fetch(`http://127.0.0.1:3000/profile?rollNo=${profile.rollNo}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -37,7 +37,7 @@ const Welcome = () => {
   const handleToggleNotifications = async () => {
     try {
       const updatedPreference = !profile.notifications;
-      const response = await fetch('http://localhost:3000/notifications', {
+      const response = await fetch('http://127.0.0.1:3000/notifications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

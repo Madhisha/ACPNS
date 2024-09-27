@@ -22,7 +22,7 @@ MongoClient.connect(MONGO_URI)
     usersCollection = db.collection(USERS_COLLECTION);
     app.listen(PORT, () => {
       console.log('Connected to MongoDB and listening on port', PORT);
-      // console.log(`Server running on http://localhost:${PORT}`);
+      // console.log(`Server running on http://127.0.0.1:${PORT}`);
     });
   })
   .catch((error) => console.error('Failed to connect to MongoDB:', error));
