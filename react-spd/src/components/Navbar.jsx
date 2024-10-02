@@ -21,7 +21,7 @@ const Navbar = () => {
           </a>
         </div>
 
-        {/* /* Mobile Menu Button  */}
+        {/* Mobile Menu Button  */}
         <div className="md:hidden">
           <button
             onClick={toggleMenu}

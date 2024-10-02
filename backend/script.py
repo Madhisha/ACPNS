@@ -4,6 +4,7 @@ from pymongo import MongoClient
 import smtplib
 from email.mime.text import MIMEText
 import re
+import bcrypt
 
 # MongoDB connection
 client = MongoClient("mongodb+srv://22z212:TfVGyfVhyjG8hkNJ@cluster0.gbcugd2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")

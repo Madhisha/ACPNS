@@ -6,8 +6,8 @@ from flask_cors import CORS
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import bcrypt
 import re
+
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)  
@@ -74,13 +74,10 @@ def register():
         if not login_successful:
             return jsonify({"message": "Login failed. Invalid credentials."}), 401
 
-        # If login successful, hash the password
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-
-        # Save the user with the hashed password to the database
+        # If login successful, save the user to the database
         new_user = {
             "rollNo": rollNo,
-            "password": hashed_password.decode('utf-8'),  # Store as a string
+            "password": password,
             "notifications": {
                 "attendance": False,
                 "marks": False,
@@ -88,8 +85,7 @@ def register():
                 "seatingArrangement": False,
                 "results": False
             },
-            "cgpa": None,
-            "marks": []
+            "cgpa": None
         }
 
         # Fetch results and update the user data
@@ -105,7 +101,6 @@ def register():
     except Exception as e:
         print(f"Error during registration: {str(e)}")
         return jsonify({"message": "Server error. Please try again later."}), 500
-
 
 # Email setup
 def send_email(subject, body, recipient):
@@ -200,16 +195,15 @@ def mark_update(session):
 
 # Login route
 @app.route('/login', methods=['POST'])
-@app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
     rollNo = data.get('rollNo')
     password = data.get('password')
 
     try:
-        user = users_collection.find_one({"rollNo": rollNo})
+        user = users_collection.find_one({"rollNo": rollNo, "password": password})
 
-        if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
+        if user:
             # Convert ObjectId to string for JSON serialization
             user['_id'] = str(user['_id'])
             return jsonify(user)  # Return the user object
