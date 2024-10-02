@@ -254,6 +254,8 @@ def mark_update(user):
     except Exception as e:
         print(f"Error processing result data for {user['rollNo']}: {e}")
 
+
+send_email("Test", "This is a test email.", ["22z212@psgtech.ac.in"])
 # Main Execution
 first_user = user_collection.find_one()
 attendance_changed = False

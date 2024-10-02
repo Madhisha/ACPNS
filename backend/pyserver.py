@@ -6,7 +6,8 @@ from flask_cors import CORS
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-
+import bcrypt
+import re
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)  
@@ -18,10 +19,10 @@ USERS_COLLECTION = 'users'  # Collection name
 client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
 users_collection = db[USERS_COLLECTION]
+session = requests.Session()
 
 
 def login_to_ecampus(user, pwd):
-    session = requests.Session()
     login_url = 'https://ecampus.psgtech.ac.in/studzone2/'
 
     try:
@@ -54,9 +55,8 @@ def login_to_ecampus(user, pwd):
         return False
     except Exception as err:
         return False
+    
 
-
-# Register route
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
@@ -74,10 +74,13 @@ def register():
         if not login_successful:
             return jsonify({"message": "Login failed. Invalid credentials."}), 401
 
-        # If login successful, save the user to the database
+        # If login successful, hash the password
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+        # Save the user with the hashed password to the database
         new_user = {
             "rollNo": rollNo,
-            "password": password,
+            "password": hashed_password.decode('utf-8'),  # Store as a string
             "notifications": {
                 "attendance": False,
                 "marks": False,
@@ -89,8 +92,14 @@ def register():
             "marks": []
         }
 
-        users_collection.insert_one(new_user)
+        # Fetch results and update the user data
+        result = get_result_data(session)
+        new_user['cgpa'] = calculate_cgpa(result)
+        new_user['marks'] = mark_update(session)
 
+        # Save new user data to MongoDB
+        users_collection.insert_one(new_user)
+        send_email("Registration Successful", "You have successfully registered for eCampus notifications.", f"{rollNo}@psgtech.ac.in")
         return jsonify({"message": "Registration successful!"}), 200
 
     except Exception as e:
@@ -98,7 +107,99 @@ def register():
         return jsonify({"message": "Server error. Please try again later."}), 500
 
 
+# Email setup
+def send_email(subject, body, recipient):
+    sender_email = "22z212@psgtech.ac.in"
+    password = "cheran#212"
+
+    msg = MIMEText(body)
+    msg['Subject'] = subject
+    msg['From'] = sender_email
+    msg['To'] = recipient
+
+    try:
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.starttls()
+            server.login(sender_email, password)
+            server.sendmail(sender_email, recipient, msg.as_string())
+    except Exception as e:
+        print(f"Error sending email: {e}")
+
+
+def get_result_data(session):
+    result_page = session.get("https://ecampus.psgtech.ac.in/studzone2/FrmEpsStudResult.aspx")
+    result_page_soup = BeautifulSoup(result_page.content, 'html.parser')
+
+    result_table = result_page_soup.find('table', {'id': 'DgResult'})
+    result_data = []
+    titles = [title.text for title in result_table.find_all('tr')[0].find_all('td')]
+
+    rows = result_table.find_all('tr')[1:]  # Skip the header row
+    for row in rows:
+        cells = row.find_all('td')
+        row_data = [cell.text.strip() for cell in cells]
+        result_data.append(dict(zip(titles, row_data)))
+
+    return result_data
+
+
+def calculate_cgpa(data):
+    try:
+        tot_credit = 0
+        credit_grade_product = 0
+        for entry in data:
+            credit = int(entry['Credit'])
+            tot_credit += credit
+            # Extract numeric grade using regex
+            grade_match = re.search(r'\d+', entry['Grade/Remark'])
+            if grade_match:
+                grade = int(grade_match.group())
+                credit_grade_product += credit * grade
+
+        if tot_credit > 0:
+            cgpa = credit_grade_product / tot_credit
+            print(f"CGPA : {cgpa}")
+            return cgpa
+        else:
+            print(f"No valid credit data for user.")
+    except Exception as e:
+        print(f"Error calculating CGPA for user: {e}")
+    
+def extract_table_data_as_string(table):
+    """Extract data from the table and return it as a concatenated string for comparison."""
+    table_data = []
+    for row in table.find_all('tr')[1:]:  # Skip the header row
+        cells = row.find_all('td')
+        if cells:
+            # Concatenate all cell values in the row to form a string
+            row_data = " ".join(cell.text.strip() for cell in cells)
+            table_data.append(row_data)
+    # Return the concatenated string for the whole table
+    return " | ".join(table_data)
+
+def mark_update(session):
+    
+    marks_page_url = "https://ecampus.psgtech.ac.in/studzone2/CAMarks_View.aspx"
+    marks_page = session.get(marks_page_url)
+    marks_page.raise_for_status()
+
+    marks_page_soup = BeautifulSoup(marks_page.content, 'html.parser')
+
+    # Step 5: Iterate over all tables on the page
+    regex_pattern = re.compile(r'^8')  # Regular expression for IDs starting with '8'
+    all_tables = marks_page_soup.find_all('table', id=regex_pattern)  # Find all tables
+    all_tables_data_string = ""  # String to store concatenated data from all tables
+
+    for table in all_tables:
+        # Extract and append data from each table
+        table_data_string = extract_table_data_as_string(table)
+        all_tables_data_string += table_data_string + " || "  # Delimiter for each table
+
+    # Step 6: Check for changes in marks
+    return all_tables_data_string
+
 # Login route
+@app.route('/login', methods=['POST'])
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -106,9 +207,9 @@ def login():
     password = data.get('password')
 
     try:
-        user = users_collection.find_one({"rollNo": rollNo, "password": password})
+        user = users_collection.find_one({"rollNo": rollNo})
 
-        if user:
+        if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
             # Convert ObjectId to string for JSON serialization
             user['_id'] = str(user['_id'])
             return jsonify(user)  # Return the user object
