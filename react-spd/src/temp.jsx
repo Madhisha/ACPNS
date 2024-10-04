@@ -23,8 +23,8 @@ const Registration = () => {
       });
 
       if (response.status === 200) {
-        setLoading(false);
         setTimeout(() => navigate('/thank-you'),3000)
+        setLoading(false);
         // navigate('/thank-you');
 
       } else if (response.status === 401) {

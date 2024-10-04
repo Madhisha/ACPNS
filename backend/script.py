@@ -16,8 +16,8 @@ result_collection = db['result']
 
 # Email setup
 def send_email(subject, body, recipient_list):
-    sender_email = "notifii.services@gmail.com"
-    password = "jsmsac@434"
+    sender_email = "22z212@psgtech.ac.in"
+    password = "cheran#212"
 
     msg = MIMEText(body)
     msg['Subject'] = subject
@@ -261,83 +261,81 @@ def mark_update(user):
     except Exception as e:
         print(f"Error processing result data for {user['rollNo']}: {e}")
 
-while True:
-    send_email("Test", "This is a test email.", ["notifii.services@gmail.com"])
-    # Main Execution
-    first_user = user_collection.find_one()
-    attendance_changed = False
-    timetable_changed = False
-    seating_changed = False
+# Main Execution
+first_user = user_collection.find_one()
+attendance_changed = False
+timetable_changed = False
+seating_changed = False
 
-    if first_user and first_user['notifications']:
-        session = requests.Session()
-        
-        # Check attendance for the first user
-        current_attendance_data = get_attendance_data(session, first_user)
-        if current_attendance_data:
-            previous_data = list(attendance_collection.find({}, {'_id': 0}))
-            previous_attendance_date = previous_data[0]['attendance_date'] if previous_data else None
+if first_user and first_user['notifications']:
+    session = requests.Session()
+    
+    # Check attendance for the first user
+    current_attendance_data = get_attendance_data(session, first_user)
+    if current_attendance_data:
+        previous_data = list(attendance_collection.find({}, {'_id': 0}))
+        previous_attendance_date = previous_data[0]['attendance_date'] if previous_data else None
 
-            if current_attendance_data != previous_attendance_date:
-                attendance_entry = {'attendance_date': current_attendance_data}
-                attendance_collection.delete_many({})
-                attendance_collection.insert_one(attendance_entry)
-                attendance_changed = True
+        if current_attendance_data != previous_attendance_date:
+            attendance_entry = {'attendance_date': current_attendance_data}
+            attendance_collection.delete_many({})
+            attendance_collection.insert_one(attendance_entry)
+            attendance_changed = True
 
-        # Check timetable and seating for the first user
-        timetable_changed = check_timetable(session)
-        print(timetable_changed)
-        seating_changed = check_seating(session)
+    # Check timetable and seating for the first user
+    timetable_changed = check_timetable(session)
+    print(timetable_changed)
+    seating_changed = check_seating(session)
 
-    # If attendance changed, send emails to all users
-    if attendance_changed:
-        users = user_collection.find()
-        for user in users:
-            # Check if 'notifications' is a dictionary
-            if isinstance(user.get('notifications'), dict):
-                if user['notifications'].get('attendance', False):
-                    recipient_email = user['rollNo'] + "@psgtech.ac.in"
-                    send_email("Attendance Update Notification", 
-            "Dear Student,\n\nPlease be informed that there has been an update to your attendance data. We kindly request you to log in to the eCampus portal to review the changes.\n\nIf you have any questions or require further assistance, feel free to contact us.\n\nBest regards,\nnotifii", 
-            [recipient_email])
-                    print(f"Email sent regarding attendance update to {recipient_email}.")
-            else:
-                print(f"Skipping user {user['rollNo']}: 'notifications' is not properly structured.")
-
-    # For all users, check results and calculate CGPA
+# If attendance changed, send emails to all users
+if attendance_changed:
     users = user_collection.find()
     for user in users:
+        # Check if 'notifications' is a dictionary
         if isinstance(user.get('notifications'), dict):
-            if user['notifications'].get('results', False):
-                print(user['rollNo'])
-                result_data = get_result_data(user)
-                if result_data:
-                    calculate_cgpa(result_data, user)
-            if user['notifications'].get('marks', False):
-                mark_update(user)
+            if user['notifications'].get('attendance', False):
+                recipient_email = user['rollNo'] + "@psgtech.ac.in"
+                send_email("Attendance Update Notification", 
+        "Dear Student,\n\nPlease be informed that there has been an update to your attendance data. We kindly request you to log in to the eCampus portal to review the changes.\n\nIf you have any questions or require further assistance, feel free to contact us.\n\nBest regards,\nnotifii", 
+        [recipient_email])
+                print(f"Email sent regarding attendance update to {recipient_email}.")
         else:
             print(f"Skipping user {user['rollNo']}: 'notifications' is not properly structured.")
 
-    if timetable_changed:
-        users = user_collection.find()
-        for user in users:
-            if isinstance(user.get('notifications'), dict):
-                if user['notifications'].get('timetable', False):
-                    print(user['rollNo'])
-                    recipient_email = user['rollNo'] + "@psgtech.ac.in"
-                    send_email("Timetable Update", "The test timetable has been published.", [recipient_email])
-                    print(f"Email sent regarding timetable update to {recipient_email}.")
-            else:
-                print(f"Skipping user {user['rollNo']}: 'notifications' is not properly structured.")
+# For all users, check results and calculate CGPA
+users = user_collection.find()
+for user in users:
+    if isinstance(user.get('notifications'), dict):
+        if user['notifications'].get('results', False):
+            print(user['rollNo'])
+            result_data = get_result_data(user)
+            if result_data:
+                calculate_cgpa(result_data, user)
+        if user['notifications'].get('marks', False):
+            mark_update(user)
+    else:
+        print(f"Skipping user {user['rollNo']}: 'notifications' is not properly structured.")
 
-    if seating_changed:
-        users = user_collection.find()
-        for user in users:
-            if isinstance(user.get('notifications'), dict):
-                if user['notifications'].get('seatingArrangement', False):
-                    recipient_email = user['rollNo'] + "@psgtech.ac.in"
-                    send_email("Seating Update", "The seating allotment has been published.", [recipient_email])
-                    print(f"Email sent regarding seating update to {recipient_email}.")
-            else:
-                print(f"Skipping user {user['rollNo']}: 'notifications' is not properly structured.")
-    sleep(30)
+if timetable_changed:
+    users = user_collection.find()
+    for user in users:
+        if isinstance(user.get('notifications'), dict):
+            if user['notifications'].get('timetable', False):
+                print(user['rollNo'])
+                recipient_email = user['rollNo'] + "@psgtech.ac.in"
+                send_email("Timetable Update", "The test timetable has been published.", [recipient_email])
+                print(f"Email sent regarding timetable update to {recipient_email}.")
+        else:
+            print(f"Skipping user {user['rollNo']}: 'notifications' is not properly structured.")
+
+if seating_changed:
+    users = user_collection.find()
+    for user in users:
+        if isinstance(user.get('notifications'), dict):
+            if user['notifications'].get('seatingArrangement', False):
+                recipient_email = user['rollNo'] + "@psgtech.ac.in"
+                send_email("Seating Update", "The seating allotment has been published.", [recipient_email])
+                print(f"Email sent regarding seating update to {recipient_email}.")
+        else:
+            print(f"Skipping user {user['rollNo']}: 'notifications' is not properly structured.")
+print(users)
