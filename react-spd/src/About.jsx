@@ -19,17 +19,17 @@ const AboutUs = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Team Member Card 1 */}
           <div className="bg-[#e6d7e8] rounded-lg p-6 text-center shadow-lg">
-            <img src="\src\assets\profile.jpg" alt="Team Member" className="w-32 h-32 rounded-full mx-auto mb-4" />
+            <img src="profile.jpg" alt="Team Member" className="w-32 h-32 rounded-full mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-[#5b2a6e]">Jeevashakthi V</h3>
           </div>
           {/* Team Member Card 2 */}
           <div className="bg-[#e6d7e8] rounded-lg p-6 text-center shadow-lg">
-            <img src="\src\assets\profile.jpg" alt="Team Member" className="w-32 h-32 rounded-full mx-auto mb-4" />
+            <img src="profile.jpg" alt="Team Member" className="w-32 h-32 rounded-full mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-[#5b2a6e]">Aravinth Cheran K S</h3>
           </div>
           {/* Team Member Card 3 */}
           <div className="bg-[#e6d7e8] rounded-lg p-6 text-center shadow-lg">
-            <img src="\src\assets\profile.jpg" alt="Team Member" className="w-32 h-32 rounded-full mx-auto mb-4" />
+            <img src="profile.jpg" alt="Team Member" className="w-32 h-32 rounded-full mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-[#5b2a6e]">Madhisha S</h3>
           </div>
         </div>

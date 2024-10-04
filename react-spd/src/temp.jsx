@@ -7,11 +7,13 @@ const Registration = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [loading,setLoading] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     try {
+      setLoading(true);
       const response = await fetch('https://notifii-backend-three.vercel.app/register', {
         method: 'POST',
         headers: {
@@ -21,14 +23,19 @@ const Registration = () => {
       });
 
       if (response.status === 200) {
-        navigate('/thank-you');
+        setLoading(false);
+        setTimeout(() => navigate('/thank-you'),3000)
+        // navigate('/thank-you');
+
       } else if (response.status === 401) {
+        setLoading(false)
         setError('Invalid credentials. Please check your username and password.');
       } else {
         const errorData = await response.json();
         setError(
           errorData.message || 'Registration failed. Please check your credentials and try again.'
         );
+        setLoading(false)
       }
     } catch (error) {
       setError('Error: Could not connect to the server. Please try again later.');
@@ -37,6 +44,11 @@ const Registration = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-[#453c5e] via-[#b398c0] to-[#7c4d8f] px-4">
+      {loading && (
+  <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
+    <div className="animate-spin-slow w-12 h-12 border-4 border-white border-t-theme-blue-violet rounded-full"></div>
+  </div>
+)}
       <h2
         className="text-5xl md:text-7xl font-extrabold text-white mb-8 text-center"
         style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.7)' }}

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Contact = () => {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [alertMessage, setAlertMessage] = useState('');
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,51 +35,57 @@ const Contact = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-[#4A4063] via-[#BFACC8] to-[#783F8E] px-4 md:px-0">
-      <h1 className="text-5xl md:text-7xl font-extrabold text-center text-white mb-8">Get in Touch</h1>
-      <p className="text-xl md:text-2xl text-center text-white mb-12">We’d love to hear from you! Please fill out the form below.</p>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-[#453c5e] via-[#b398c0] to-[#7c4d8f] px-4">
+      <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-8 text-center" style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.7)' }}>
+        Get in Touch
+      </h1>
+      <p className="text-xl md:text-2xl text-center text-white mb-12" style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.7)' }}>
+        We’d love to hear from you! Please fill out the form below.
+      </p>
 
       {alertMessage && (
-        <div className="mb-4 text-lg text-center text-white">{alertMessage}</div>
+        <div className="mb-4 text-lg text-center text-red-500">
+          {alertMessage}
+        </div>
       )}
 
       {/* Contact Form */}
-      <form className="bg-white shadow-lg rounded-lg p-8 max-w-lg w-full" onSubmit={handleSubmit}>
-        <div className="mb-6">
-          <label className="block text-[#783F8E] text-sm font-bold mb-2" htmlFor="name">Name</label>
+      <form onSubmit={handleSubmit} className="bg-white p-8 md:p-12 rounded-2xl shadow-xl max-w-lg w-full">
+        <div className="relative mb-6">
+          <label className="block text-[#5b2a6e] mb-2">Name</label>
           <input
             type="text"
             name="name"
             value={formData.name}
             onChange={handleChange}
+            className="block w-full p-4 border border-[#5b2a6e] rounded-lg text-gray-700 focus:outline-none focus:border-[#BFACC8] focus:ring-2 focus:ring-[#BFACC8] transition duration-200"
             placeholder="Your Name"
-            className="border border-[#BFACC8] rounded-lg w-full py-2 px-4 focus:outline-none focus:border-[#5b2a6e]"
             required
           />
         </div>
 
-        <div className="mb-6">
-          <label className="block text-[#783F8E] text-sm font-bold mb-2" htmlFor="email">Email</label>
+        <div className="relative mb-6">
+          <label className="block text-[#5b2a6e] mb-2">Email</label>
           <input
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
+            className="block w-full p-4 border border-[#5b2a6e] rounded-lg text-gray-700 focus:outline-none focus:border-[#BFACC8] focus:ring-2 focus:ring-[#BFACC8] transition duration-200"
             placeholder="Your Email"
-            className="border border-[#BFACC8] rounded-lg w-full py-2 px-4 focus:outline-none focus:border-[#5b2a6e]"
             required
           />
         </div>
 
-        <div className="mb-6">
-          <label className="block text-[#783F8E] text-sm font-bold mb-2" htmlFor="message">Message</label>
+        <div className="relative mb-6">
+          <label className="block text-[#5b2a6e] mb-2">Message</label>
           <textarea
             name="message"
             value={formData.message}
             onChange={handleChange}
             rows="4"
+            className="block w-full p-4 border border-[#5b2a6e] rounded-lg text-gray-700 focus:outline-none focus:border-[#BFACC8] focus:ring-2 focus:ring-[#BFACC8] transition duration-200"
             placeholder="Your Message"
-            className="border border-[#BFACC8] rounded-lg w-full py-2 px-4 focus:outline-none focus:border-[#5b2a6e]"
             required
           ></textarea>
         </div>

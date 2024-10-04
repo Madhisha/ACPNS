@@ -1,7 +1,7 @@
 const { spawnSync } = require('child_process');
 
 const user = '22z212'
-const password = 'cheran#212'
+const password = 'jsmsac@434'
 
 
 // Run the Python script
