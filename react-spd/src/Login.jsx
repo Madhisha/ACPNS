@@ -7,11 +7,13 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [loading,setLoading] = useState(false);
 
   const handleLogin = async (event) => {
     event.preventDefault();
 
     try {
+      setLoading(true);
       const response = await fetch('https://notifii-backend-three.vercel.app/login', {
         method: 'POST',
         headers: {
@@ -22,9 +24,11 @@ const Login = () => {
 
       if (response.status === 200) {
         const userData = await response.json();
-        navigate('/welcome', { state: userData });
+        setLoading(false);
+        setTimeout(() => navigate('/welcome', { state: userData }),3000);
       } else {
         const errorData = await response.json();
+        setLoading(false);
         setError(errorData.message || 'Login failed. Please check your credentials.');
       }
     } catch (error) {
@@ -35,6 +39,11 @@ const Login = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-[#453c5e] via-[#b398c0] to-[#7c4d8f] px-4">
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
+          <div className="animate-spin-slow w-12 h-12 border-4 border-white border-t-theme-blue-violet rounded-full"></div>
+        </div>
+      )}
       <h2 
         className="text-5xl md:text-7xl font-extrabold text-white mb-8 text-center"
         style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.7)' }}
