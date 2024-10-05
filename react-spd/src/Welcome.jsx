@@ -5,7 +5,7 @@ const Welcome = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(location.state || { rollNo: '', notifications: {}, error: '' });
-  const [mainNotificationsEnabled, setMainNotificationsEnabled] = useState(true);
+  const [mainNotificationsEnabled, setMainNotificationsEnabled] = useState(false);
 
   useEffect(() => {
     if (!location.state) {
@@ -124,7 +124,7 @@ const Welcome = () => {
 
         {/* Main Notifications Toggle */}
         <div className="flex items-center justify-between mb-6">
-          <span className="text-lg text-gray-800">Enable All Notifications</span>
+          <span className="text-lg text-gray-800">Enable Notifications</span>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"

@@ -24,7 +24,7 @@ const Login = () => {
 
       if (response.status === 200) {
         const userData = await response.json();
-        setTimeout(() => navigate('/welcome', { state: userData }),3000);
+        navigate('/welcome', { state: userData });
         setLoading(false);
       } else {
         const errorData = await response.json();

@@ -23,9 +23,9 @@ const Registration = () => {
       });
 
       if (response.status === 200) {
-        setTimeout(() => navigate('/thank-you'),3000)
+        navigate('/thank-you');
         setLoading(false);
-        // navigate('/thank-you');
+        // setTimeout(() => navigate('/thank-you'),3000)
 
       } else if (response.status === 401) {
         setLoading(false)
