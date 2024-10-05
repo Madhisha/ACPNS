@@ -1,3 +1,4 @@
+//contact.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -51,43 +52,59 @@ const Contact = () => {
 
       {/* Contact Form */}
       <form onSubmit={handleSubmit} className="bg-white p-8 md:p-12 rounded-2xl shadow-xl max-w-lg w-full">
+        
+        {/* Name Field */}
         <div className="relative mb-6">
-          <label className="block text-[#5b2a6e] mb-2">Name</label>
           <input
             type="text"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className="block w-full p-4 border border-[#5b2a6e] rounded-lg text-gray-700 focus:outline-none focus:border-[#BFACC8] focus:ring-2 focus:ring-[#BFACC8] transition duration-200"
-            placeholder="Your Name"
+            className="block w-full p-4 pt-6 border border-[#5b2a6e] rounded-lg text-gray-700 focus:outline-none focus:border-[#BFACC8] focus:ring-2 focus:ring-[#BFACC8] transition duration-200"
             required
           />
+          {/* Fixed Label */}
+          <label
+            className="absolute top-0 left-3 px-1 text-[#5b2a6e] bg-white transform -translate-y-2.5 scale-90"
+          >
+            Name
+          </label>
         </div>
 
+        {/* Email Field */}
         <div className="relative mb-6">
-          <label className="block text-[#5b2a6e] mb-2">Email</label>
           <input
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className="block w-full p-4 border border-[#5b2a6e] rounded-lg text-gray-700 focus:outline-none focus:border-[#BFACC8] focus:ring-2 focus:ring-[#BFACC8] transition duration-200"
-            placeholder="Your Email"
+            className="block w-full p-4 pt-6 border border-[#5b2a6e] rounded-lg text-gray-700 focus:outline-none focus:border-[#BFACC8] focus:ring-2 focus:ring-[#BFACC8] transition duration-200"
             required
           />
+          {/* Fixed Label */}
+          <label
+            className="absolute top-0 left-3 px-1 text-[#5b2a6e] bg-white transform -translate-y-2.5 scale-90"
+          >
+            Email
+          </label>
         </div>
 
+        {/* Message Field */}
         <div className="relative mb-6">
-          <label className="block text-[#5b2a6e] mb-2">Message</label>
           <textarea
             name="message"
             value={formData.message}
             onChange={handleChange}
             rows="4"
-            className="block w-full p-4 border border-[#5b2a6e] rounded-lg text-gray-700 focus:outline-none focus:border-[#BFACC8] focus:ring-2 focus:ring-[#BFACC8] transition duration-200"
-            placeholder="Your Message"
+            className="block w-full p-4 pt-6 border border-[#5b2a6e] rounded-lg text-gray-700 focus:outline-none focus:border-[#BFACC8] focus:ring-2 focus:ring-[#BFACC8] transition duration-200"
             required
           ></textarea>
+          {/* Fixed Label */}
+          <label
+            className="absolute top-0 left-3 px-1 text-[#5b2a6e] bg-white transform -translate-y-2.5 scale-90"
+          >
+            Message
+          </label>
         </div>
 
         <button
