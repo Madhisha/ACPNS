@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import "../src/index.css";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -12,13 +13,9 @@ const Home = () => {
       >
         Connect. Learn. Thrive.
       </h1>
-      <p 
-        className="text-xl md:text-3xl text-white text-center mb-8"
-        style={{ textShadow: '1px 1px 3px rgba(0, 0, 0, 0.7)' }} // Add letter shadow here
-      >
-        Get notified from your portal for attendance, timetable, seating arrangements, and CGPA details.
-      </p>
-
+      <h5 className="text-animation">
+        Get notified about <span></span>
+      </h5>
       {/* Animated Buttons for Login and Register */}
       <div className="w-full max-w-md space-y-6">
         <button

@@ -1,3 +1,125 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+.text-animation {
+    font-size: 60px;
+    font-weight: 600;
+    min-width: 280px;
+    display: inline-block; /* Ensures span fits inline with text */
+  }
+  
+  .text-animation span {
+    position: relative;
+    display: inline-block; /* Ensures inline behavior with the blinking cursor */
+  }
+  
+  .text-animation span::before {
+    content: "";
+    color: black; /* Text is hidden before animation */
+    animation: words 20s infinite; /* Ensure the words are animated in the span */
+  }
+  
+  .text-animation span::after {
+    content: ""; 
+    position: absolute;
+    width: calc(100% + 8px);
+    height: 100%;
+    background-color: rgb(187, 154, 187); /* Keep the background transparent */
+    border-left: 3px solid black; /* Black blinking cursor */
+    right: -8px;
+    animation: cursor 0.4s infinite, typing 18s steps(14) infinite;
+  }
+  
+  /* Blinking cursor animation */
+  @keyframes cursor {
+    0%, 100% {
+      border-left-color: black; /* Visible cursor */
+    }
+    50% {
+      border-left-color: linear-gradient(to right, #453c5e, #b398c0, #7c4d8f); ; /* Hidden cursor */
+    }
+  }
+  
+  /* Words animation - the content of the span will cycle through these words */
+  @keyframes words {
+    0%, 20% {
+      content: "Donate"; /* First word */
+    }
+    21%, 40% {
+      content: "Give"; /* Second word */
+    }
+    41%, 60% {
+      content: "Help"; /* Third word */
+    }
+    61%, 80% {
+      content: "Support"; /* Fourth word */
+    }
+    81%, 100% {
+      content: "Contribute"; /* Fifth word */
+    }
+  }
+  
+  /* Typing animation */
+  @keyframes typing {
+    0%, 100% {
+      width: 0; /* Simulates typing effect starting and ending */
+    }
+    50% {
+      width: calc(100% + 8px); /* Simulates full typed text */
+    }
+  }
+  
+  @keyframes cursor{
+    to{
+        border-left: 2px solid #392416;
+    }
+  }
+  @keyframes words{
+    0%,
+    20%{
+        content: "Food";
+    }
+    21%,
+    40%{
+        content: "Blood";
+    }
+    41%,
+    60%{
+        content: "Clothes";
+    }
+    61%,
+    80%{
+        content: "Money";
+    }
+    81%,
+    100%{
+        content: "Shelter";
+    }
+  }
+  @keyframes typing {
+    10%,
+    15%,
+    30%,
+    35%,
+    50%,
+    55%,
+    70%,
+    75%,
+    90%,
+    95%{
+        width: 0;
+    }
+    5%,
+    20%,
+    25%,
+    40%,
+    45%,
+    60%,
+    65%,
+    80%,
+    85%{
+        width: calc(100% + 8px);
+    }
+  }
