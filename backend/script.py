@@ -16,8 +16,8 @@ result_collection = db['result']
 
 # Email setup
 def send_email(subject, body, recipient_list):
-    sender_email = "22z212@psgtech.ac.in"
-    password = "cheran#212"
+    sender_email = "notifii.services@gmail.com"
+    password = "evtz vwnw pwpq tanh"
 
     msg = MIMEText(body)
     msg['Subject'] = subject
@@ -272,6 +272,7 @@ if first_user and first_user['notifications']:
     
     # Check attendance for the first user
     current_attendance_data = get_attendance_data(session, first_user)
+    print(current_attendance_data)
     if current_attendance_data:
         previous_data = list(attendance_collection.find({}, {'_id': 0}))
         previous_attendance_date = previous_data[0]['attendance_date'] if previous_data else None

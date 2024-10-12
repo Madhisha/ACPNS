@@ -105,7 +105,7 @@ def register():
 # Email setup
 def send_email(subject, body, recipient):
     sender_email = "22zz212@psgtech.ac.in"
-    password = "cheran#212"
+    password = "evtz vwnw pwpq tanh"
 
     msg = MIMEText(body)
     msg['Subject'] = subject
@@ -266,7 +266,7 @@ def send_message():
     smtp_server = 'smtp.gmail.com'  # Replace with your SMTP server
     smtp_port = 587  # Usually 587 for TLS
     smtp_user = '22zz212@psgtech.ac.in'  # Replace with your email
-    smtp_password = 'cheran#212'  # Replace with your email password
+    smtp_password = 'evtz vwnw pwpq tanh'  # Replace with your email password
 
     # Create the email
     msg = MIMEMultipart()
