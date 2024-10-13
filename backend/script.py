@@ -74,17 +74,71 @@ def get_attendance_data(session, user):
         print(f"Error fetching attendance data: {e}")
         return None
 
-def check_timetable(session):
+def check_timetable(session, user):
+    login_url = 'https://ecampus.psgtech.ac.in/studzone2/'
     try:
+        # Step 1: Get login page
+        response = session.get(login_url)
+        response.raise_for_status()
+
+        # Step 2: Parse login page and extract necessary form values
+        soup = BeautifulSoup(response.content, 'html.parser')
+        viewstate = soup.find('input', {'name': '__VIEWSTATE'})['value']
+        viewstate_generator = soup.find('input', {'name': '__VIEWSTATEGENERATOR'})['value']
+        event_validation = soup.find('input', {'name': '__EVENTVALIDATION'})['value']
+
+        # Step 3: Prepare login data and perform login
+        login_data = {
+            '__VIEWSTATE': viewstate,
+            '__VIEWSTATEGENERATOR': viewstate_generator,
+            '__EVENTVALIDATION': event_validation,
+            'txtusercheck': user['rollNo'],
+            'txtpwdcheck': user['password'],
+            'abcd3': 'Login'
+        }
+
+        login_response = session.post(login_url, data=login_data)
+        login_response.raise_for_status()
+
+        if "login failed" in login_response.text.lower():
+            print(f"Login failed for user.")
+            return None
+        
+        # Step 4: Fetch timetable page and parse
         time_table_page_response = session.get("https://ecampus.psgtech.ac.in/studzone2/FrmEpsTestTimetable.aspx")
         time_table_page_soup = BeautifulSoup(time_table_page_response.content, 'html.parser')
-        script_tag = str(time_table_page_soup.find('script')).strip()
-        expected_script_tag = "<script>alert('Test Time Table Not Yet Published')</script>"
-        if expected_script_tag == script_tag or script_tag == None or "skm_highlightTopMenus" in script_tag:
-            print("Test timetable not yet published.")
-        else:
-            print("Test timetable published.")
-            return True  # Indicates timetable is published
+        
+        # Step 5: Find and extract the table data
+        table = time_table_page_soup.find('table', {'id': 'DgResult'})
+        if table is None:
+            print("Test timetable not found.")
+            return
+        
+        # Construct the HTML table
+        html_table = "<table border='1' cellpadding='5' cellspacing='0'>"
+        
+        # Extract table headers
+        headers = [header.text.strip() for header in table.find_all('tr')[0].find_all('td')]
+        html_table += "<tr>"
+        for header in headers:
+            html_table += f"<th>{header}</th>"
+        html_table += "</tr>"
+
+        # Extract table rows
+        for row in table.find_all('tr')[1:]:
+            columns = [col.text.strip() for col in row.find_all('td')]
+            html_table += "<tr>"
+            for col in columns:
+                html_table += f"<td>{col}</td>"
+            html_table += "</tr>"
+        
+        html_table += "</table>"
+
+        # Send email with the HTML table
+        recipient_email = "22z225@psgtech.ac.in"  # Replace with the actual recipient's email
+        subject = "Test Timetable"
+        send_email(recipient_email, subject, html_table)
+
     except Exception as e:
         print(f"Error checking test timetable: {e}")
         return None

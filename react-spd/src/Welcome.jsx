@@ -5,7 +5,7 @@ const Welcome = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(location.state || { rollNo: '', notifications: {}, error: '' });
-  const [mainNotificationsEnabled, setMainNotificationsEnabled] = useState(false);
+  const [mainNotificationsEnabled, setMainNotificationsEnabled] = useState(true);
 
   useEffect(() => {
     if (!location.state) {

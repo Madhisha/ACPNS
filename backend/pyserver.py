@@ -217,25 +217,28 @@ def login():
 
 # Profile fetching route
 @app.route('/profile', methods=['GET'])
-def profile():
+def get_profile():
     rollNo = request.args.get('rollNo')
-
     try:
-        user = users_collection.find_one({"rollNo": rollNo})
-
+        user = users_collection.find_one({"rollNo": rollNo}, {"_id": 0})
         if user:
-            # Convert ObjectId to string for JSON serialization
-            user['_id'] = str(user['_id'])
+            default_notifications = {
+                "attendance": True,
+                "marks": True,
+                "timetable": True,
+                "seatingArrangement": True,
+                "results": True,
+            }
+            user['notifications'] = {**default_notifications, **user.get('notifications', {})}
             return jsonify(user)
-
-        return jsonify({"message": "User not found."}), 404
+        else:
+            return jsonify({"message": "User not found."}), 404
 
     except Exception as e:
         print(f"Error fetching profile: {str(e)}")
         return jsonify({"message": "Server error. Please try again later."}), 500
 
-
-# Update notification preferences
+# Update notification settings
 @app.route('/notifications', methods=['POST'])
 def update_notifications():
     data = request.get_json()
@@ -243,17 +246,21 @@ def update_notifications():
     notifications = data.get('notifications')
 
     try:
-        result = users_collection.update_one({"rollNo": rollNo}, {"$set": {"notifications": notifications}})
-
-        # Check how many documents were matched and updated
-        if result.matched_count > 0:
-            return jsonify({"message": "Notification preference updated successfully!"})
+        if notifications:
+            result = users_collection.update_one({"rollNo": rollNo}, {"$set": {"notifications": notifications}})
+            if result.matched_count > 0:
+                return jsonify({"message": "Notification preferences updated successfully!"})
+            else:
+                return jsonify({"message": "User not found."}), 404
         else:
-            return jsonify({"message": "User not found."}), 404
-
+            return jsonify({"message": "No notification preferences provided."}), 400
     except Exception as e:
         print(f"Error updating notifications: {str(e)}")
         return jsonify({"message": "Server error. Please try again later."}), 500
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)
+
 
 @app.route('/send-message', methods=['POST'])
 def send_message():
@@ -265,7 +272,7 @@ def send_message():
     # Setup your email server settings
     smtp_server = 'smtp.gmail.com'  # Replace with your SMTP server
     smtp_port = 587  # Usually 587 for TLS
-    smtp_user = '22zz212@psgtech.ac.in'  # Replace with your email
+    smtp_user = 'notifii.services@gmail.com'  # Replace with your email
     smtp_password = 'evtz vwnw pwpq tanh'  # Replace with your email password
 
     # Create the email
