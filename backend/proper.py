@@ -1,16 +1,20 @@
+from time import sleep
 import requests
 from bs4 import BeautifulSoup
 from pymongo import MongoClient
 import smtplib
 from email.mime.text import MIMEText
 import re
+import bcrypt
 
+# MongoDB connection
 client = MongoClient("mongodb+srv://22z212:TfVGyfVhyjG8hkNJ@cluster0.gbcugd2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 db = client['ecampus']
 user_collection = db['users']
 attendance_collection = db['attendance']
 result_collection = db['result']
 
+# Email setup
 def send_email(subject, body, recipient_list):
     sender_email = "notifii.services@gmail.com"
     password = "evtz vwnw pwpq tanh"
@@ -28,10 +32,9 @@ def send_email(subject, body, recipient_list):
     except Exception as e:
         print(f"Error sending email: {e}")
 
-def get_attendance_data():
+def get_attendance_data(session, user):
     login_url = 'https://ecampus.psgtech.ac.in/studzone2/'
     try:
-        session = requests.Session()
         response = session.get(login_url)
         soup = BeautifulSoup(response.content, 'html.parser')
         viewstate = soup.find('input', {'name': '__VIEWSTATE'})['value']
@@ -42,14 +45,14 @@ def get_attendance_data():
             '__VIEWSTATE': viewstate,
             '__VIEWSTATEGENERATOR': viewstate_generator,
             '__EVENTVALIDATION': event_validation,
-            'txtusercheck': '22z212',
-            'txtpwdcheck': 'cheran#212',
+            'txtusercheck': user['rollNo'],
+            'txtpwdcheck': user['password'],
             'abcd3': 'Login'
         }
 
         response = session.post(login_url, data=login_data)
         if "login failed" in response.text.lower():
-            # print(f"Login failed for user {user['rollNo']}.")
+            print(f"Login failed for user {user['rollNo']}.")
             return None
 
         attendance_page_response = session.get("https://ecampus.psgtech.ac.in/studzone2/AttWfPercView.aspx")
@@ -65,52 +68,42 @@ def get_attendance_data():
             row_data = [cell.text.strip() for cell in cells]
             date_index = headers.index('ATTENDANCE PERCENTAGE TO')
             attendance_data = row_data[date_index]
-            seating = check_seating(session)
 
-            return attendance_data, seating
+            return attendance_data
     except Exception as e:
         print(f"Error fetching attendance data: {e}")
         return None
 
-def login(user):
-    session = requests.Session()
+def check_timetable(user):
     login_url = 'https://ecampus.psgtech.ac.in/studzone2/'
-
     try:
-        session = requests.Session()
-        login_url = 'https://ecampus.psgtech.ac.in/studzone2/'
-
-        # Perform login
+        # Step 1: Get login page
         response = session.get(login_url)
+        response.raise_for_status()
+
+        # Step 2: Parse login page and extract necessary form values
         soup = BeautifulSoup(response.content, 'html.parser')
         viewstate = soup.find('input', {'name': '__VIEWSTATE'})['value']
         viewstate_generator = soup.find('input', {'name': '__VIEWSTATEGENERATOR'})['value']
         event_validation = soup.find('input', {'name': '__EVENTVALIDATION'})['value']
 
+        # Step 3: Prepare login data and perform login
         login_data = {
             '__VIEWSTATE': viewstate,
             '__VIEWSTATEGENERATOR': viewstate_generator,
             '__EVENTVALIDATION': event_validation,
-            'txtusercheck': user['rollNo'],  # Replace with actual username
-            'txtpwdcheck': user['password'],  # Replace with actual password
+            'txtusercheck': user['rollNo'],
+            'txtpwdcheck': user['password'],
             'abcd3': 'Login'
         }
 
-        response = session.post(login_url, data=login_data)
+        login_response = session.post(login_url, data=login_data)
+        login_response.raise_for_status()
 
-        attendance_page_response = session.get("https://ecampus.psgtech.ac.in/studzone2/AttWfPercView.aspx")
-        if 'ASP.NET Ajax client-side framework failed to load.' in attendance_page_response.text:
+        if "login failed" in login_response.text.lower():
+            print(f"Login failed for user.")
             return None
-        else:
-            return session
-    except requests.exceptions.HTTPError as http_err:
-        return f"HTTP error occurred: {http_err}"
-    except Exception as err:
-        return f"An error occurred: {err}"
-
-    
-def check_timetable(session, user):
-    try:
+        
         # Step 4: Fetch timetable page and parse
         time_table_page_response = session.get("https://ecampus.psgtech.ac.in/studzone2/FrmEpsTestTimetable.aspx")
         time_table_page_soup = BeautifulSoup(time_table_page_response.content, 'html.parser')
@@ -169,6 +162,7 @@ def check_timetable(session, user):
         print(f"Error checking test timetable: {e}")
         return None
 
+
 def check_seating(session):
     try:
         seating_page = session.get("https://ecampus.psgtech.ac.in/studzone2/EpsWfSeating.aspx")
@@ -184,8 +178,28 @@ def check_seating(session):
         print(f"Error checking seating allotment: {e}")
         return None
 
-def get_result_data(session):
+def get_result_data(user):
+    login_url = 'https://ecampus.psgtech.ac.in/studzone2/'
     try:
+        response = session.get(login_url)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        viewstate = soup.find('input', {'name': '__VIEWSTATE'})['value']
+        viewstate_generator = soup.find('input', {'name': '__VIEWSTATEGENERATOR'})['value']
+        event_validation = soup.find('input', {'name': '__EVENTVALIDATION'})['value']
+
+        login_data = {
+            '__VIEWSTATE': viewstate,
+            '__VIEWSTATEGENERATOR': viewstate_generator,
+            '__EVENTVALIDATION': event_validation,
+            'txtusercheck': user['rollNo'],
+            'txtpwdcheck': user['password'],
+            'abcd3': 'Login'
+        }
+
+        response = session.post(login_url, data=login_data)
+        if "login failed" in response.text.lower():
+            print(f"Login failed for user {user['rollNo']}.")
+            return None
         result_page = session.get("https://ecampus.psgtech.ac.in/studzone2/FrmEpsStudResult.aspx")
         result_page_soup = BeautifulSoup(result_page.content, 'html.parser')
 
@@ -203,7 +217,7 @@ def get_result_data(session):
     except Exception as e:
         print(f"Error processing result data: {e}")
         return None
-    
+
 def calculate_cgpa(data, user):
     try:
         tot_credit = 0
@@ -226,7 +240,7 @@ def calculate_cgpa(data, user):
                 user_collection.update_one({'rollNo': user['rollNo']}, {'$set': {'cgpa': cgpa}})
                 recipient_email = user['rollNo'] + "@psgtech.ac.in"
                 send_email("Result Update Notification", 
-                    f"Dear Student,\n\nWe are pleased to inform you that your academic results have been published. Your current Cumulative Grade Point Average (CGPA) is: {cgpa}. Please log in to the eCampus portal for detailed information.\n\nShould you require any assistance or have any queries, please do not hesitate to contact us for support.\n\nBest regards,\nNotifii Team", 
+                    f"Dear Student,\n\nWe are pleased to inform you that your results have been published. Your current CGPA is: {cgpa}. Please log in to the eCampus portal for detailed information.\n\nShould you require any assistance, feel free to reach us for support.\n\nBest regards,\nNotifii Team", 
                     [recipient_email])
             else:
                 print(f"No change in CGPA for {user['rollNo']}. No email sent.")
@@ -234,7 +248,7 @@ def calculate_cgpa(data, user):
             print(f"No valid credit data for user {user['rollNo']}.")
     except Exception as e:
         print(f"Error calculating CGPA for user {user['rollNo']}: {e}")
-
+    
 def extract_table_data_as_string(table):
     """Extract data from the table and return it as a concatenated string for comparison."""
     table_data = []
@@ -247,9 +261,37 @@ def extract_table_data_as_string(table):
     # Return the concatenated string for the whole table
     return " | ".join(table_data)
 
-def mark_update(session, user):
+def mark_update(user):
+    login_url = 'https://ecampus.psgtech.ac.in/studzone2/'
     
     try:
+        # Step 1: Get login page
+        response = session.get(login_url)
+        response.raise_for_status()
+
+        # Step 2: Parse login page and extract necessary form values
+        soup = BeautifulSoup(response.content, 'html.parser')
+        viewstate = soup.find('input', {'name': '__VIEWSTATE'})['value']
+        viewstate_generator = soup.find('input', {'name': '__VIEWSTATEGENERATOR'})['value']
+        event_validation = soup.find('input', {'name': '__EVENTVALIDATION'})['value']
+
+        # Step 3: Prepare login data and perform login
+        login_data = {
+            '__VIEWSTATE': viewstate,
+            '__VIEWSTATEGENERATOR': viewstate_generator,
+            '__EVENTVALIDATION': event_validation,
+            'txtusercheck': user['rollNo'],
+            'txtpwdcheck': user['password'],
+            'abcd3': 'Login'
+        }
+
+        login_response = session.post(login_url, data=login_data)
+        login_response.raise_for_status()
+
+        if "login failed" in login_response.text.lower():
+            print(f"Login failed for user {user['rollNo']}.")
+            return None
+
         # Step 4: Access the marks page
         marks_page_url = "https://ecampus.psgtech.ac.in/studzone2/CAMarks_View.aspx"
         marks_page = session.get(marks_page_url)
@@ -293,40 +335,74 @@ def mark_update(session, user):
     except Exception as e:
         print(f"Error processing result data for {user['rollNo']}: {e}")
 
+# Main Execution
+first_user = user_collection.find_one()
+attendance_changed = False
 
+seating_changed = False
+
+if first_user and first_user['notifications']:
+    session = requests.Session()
+    
+    # Check attendance for the first user
+    current_attendance_data = get_attendance_data(session, first_user)
+    print(current_attendance_data)
+    if current_attendance_data:
+        previous_data = list(attendance_collection.find({}, {'_id': 0}))
+        previous_attendance_date = previous_data[0]['attendance_date'] if previous_data else None
+
+        if current_attendance_data != previous_attendance_date:
+            attendance_entry = {'attendance_date': current_attendance_data}
+            attendance_collection.delete_many({})
+            attendance_collection.insert_one(attendance_entry)
+            attendance_changed = True
+
+
+# If attendance changed, send emails to all users
+if attendance_changed:
+    users = user_collection.find()
+    for user in users:
+        # Check if 'notifications' is a dictionary
+        if isinstance(user.get('notifications'), dict):
+            if user['notifications'].get('attendance', False):
+                recipient_email = user['rollNo'] + "@psgtech.ac.in"
+                send_email("Attendance Update Notification", 
+        "Dear Student,\n\nPlease be informed that there has been an update to your attendance data. We kindly request you to log in to the eCampus portal to review the changes.\n\nIf you have any questions or require further assistance, feel free to contact us.\n\nBest regards,\nnotifii", 
+        [recipient_email])
+                print(f"Email sent regarding attendance update to {recipient_email}.")
+            if user['notifications'].get('timetable', False):
+                check_timetable(user)
+        else:
+            print(f"Skipping user {user['rollNo']}: 'notifications' is not properly structured.")
+
+# For all users, check results and calculate CGPA
 users = user_collection.find()
-previous_data = list(attendance_collection.find({}, {'_id': 0}))
-current_data, seating_arrangement = get_attendance_data()
-previous_data = previous_data[0]['attendance_date'] if previous_data else None
-print(current_data, previous_data)
-if current_data != previous_data and current_data != None:
-    attendance_collection.update_one({}, {'$set': {'attendance_date': current_data}})
-    attendance_change = True
-else:
-    attendance_change = False
-
 for user in users:
     if isinstance(user.get('notifications'), dict):
-        if user['notifications'].get('attendance', False) and attendance_change:
-            recipient_email = user['rollNo'] + "@psgtech.ac.in"
-            send_email("Attendance Update Notification", 
-    "Dear Student,\n\nPlease be informed that there has been an update to your attendance data. We kindly request you to log in to the eCampus portal to review the changes.\n\nIf you have any questions or require further assistance, feel free to contact us.\n\nBest regards,\nnotifii", 
-    [recipient_email])
-            print(f"Email sent regarding attendance update to {recipient_email}.")
-        session = login(user)
-        if user['notifications'].get('timetable', False):
-            check_timetable(session, user)
         if user['notifications'].get('results', False):
             print(user['rollNo'])
-            result_data = get_result_data(session)
+            result_data = get_result_data(user)
             if result_data:
                 calculate_cgpa(result_data, user)
         if user['notifications'].get('marks', False):
-            mark_update(session, user)
-        if user['notifications'].get('seatingArrangement', False) and seating_arrangement:
-            recipient_email = user['rollNo'] + "@psgtech.ac.in"
-            send_email(
-                "Seating Update Notification",
-                "Dear Student,\n\nWe are pleased to inform you that the seating allotment has been published. Please log in to the eCampus portal to view your seating arrangement.\n\nIf you have any questions or require further assistance, feel free to contact us.\n\nBest regards,\nNotifii Team",
-                [recipient_email]
-            )
+            mark_update(user)
+        if user['notifications'].get('test_timetable', False):
+            check_timetable(user)
+    else:
+        print(f"Skipping user {user['rollNo']}: 'notifications' is not properly structured.")
+
+for user in users:
+    if isinstance(user.get('notifications'), dict):
+        if user['notifications'].get('test_timetable', False):
+            check_timetable(user)
+if seating_changed:
+    users = user_collection.find()
+    for user in users:
+        if isinstance(user.get('notifications'), dict):
+            if user['notifications'].get('seatingArrangement', False):
+                recipient_email = user['rollNo'] + "@psgtech.ac.in"
+                send_email("Seating Update", "The seating allotment has been published.", [recipient_email])
+                print(f"Email sent regarding seating update to {recipient_email}.")
+        else:
+            print(f"Skipping user {user['rollNo']}: 'notifications' is not properly structured.")
+        
