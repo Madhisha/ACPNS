@@ -86,7 +86,7 @@ const Login = () => {
           <label
             className="absolute top-0 left-3 px-1 text-[#5b2a6e] bg-white transform -translate-y-2.5 scale-90 peer-placeholder-shown:translate-y-3 peer-placeholder-shown:scale-100 peer-placeholder-shown:text-gray-400 transition-all duration-200"
           >
-            Password
+            Parent Mobile No
           </label>
           <button
             type="button"

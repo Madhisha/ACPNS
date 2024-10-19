@@ -11,22 +11,26 @@ user_collection = db['new_users']
 attendance_collection = db['attendance']
 result_collection = db['result']
 
-def send_email(subject, body, recipient_list):
+def send_email(recipient_email, subject, body):
     sender_email = "notifii.services@gmail.com"
     password = "evtz vwnw pwpq tanh"
 
-    msg = MIMEText(body)
+    # Create the MIMEText message object with HTML content
+    msg = MIMEText(body, 'html')  # 'html' specifies the format
+
     msg['Subject'] = subject
     msg['From'] = sender_email
-    msg['To'] = recipient_list
+    msg['To'] = recipient_email
 
     try:
         with smtplib.SMTP('smtp.gmail.com', 587) as server:
             server.starttls()
             server.login(sender_email, password)
-            server.sendmail(sender_email, recipient_list, msg.as_string())
+            server.sendmail(sender_email, recipient_email, msg.as_string())
+            print(f"Email successfully sent to {recipient_email}")
     except Exception as e:
         print(f"Error sending email: {e}")
+
 
 def get_attendance_data(session, user):
     try:
@@ -200,24 +204,34 @@ def check_timetable(session, user):
         user_collection.update_one({'rollNo': user['rollNo']}, {'$set': {'timetable': html_table}})
 
         # Send email with the HTML table
-        recipient_email = user['rollNo'] + "@psgtech.ac.in"  # Replace with the actual recipient's email
+        roll = user['rollNo'].lower()  # Ensure the roll number is valid
+        recipient_email = roll + "@psgtech.ac.in"  # Construct the recipient's email
         subject = "Test Timetable Update Notification"
         body = f"""
-        Dear Student,
+        <html>
+            <body>
+                <p>Dear Student,</p>
 
-        We are pleased to inform you that your test timetable has been published. Please find the details below:
+                <p>We are pleased to inform you that your test timetable has been published. Please find the details below:</p>
 
-        {html_table}
+                {html_table}
 
-        Kindly log in to the eCampus portal for more information.
+                <p>Kindly log in to the eCampus portal for more information.</p>
 
-        If you have any questions or require further assistance, feel free to contact us.
+                <p>If you have any questions or require further assistance, feel free to contact us.</p>
+                <p>You can modify your notification preferences in the Notifii web application.<br>
+                <a href="https://notifii.vercel.app">Notifii Web Application</a></p>
 
-        Best regards,
-        Notifii Team
+                <p>Best regards,<br>
+                Notifii Team</p>
+            </body>
+        </html>
         """
-        # Corrected function call
+
+
+        # Send email
         send_email(recipient_email, subject, body)
+
 
     except Exception as e:
         print(f"Error checking test timetable: {e}")
