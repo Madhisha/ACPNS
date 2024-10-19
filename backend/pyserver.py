@@ -26,19 +26,45 @@ def login_to_ecampus(user, pwd):
     login_url = 'https://ecampus.psgtech.ac.in/studzone2/'
 
     try:
-        # Perform login
+        # Step 1: Access the initial login page
         response = session.get(login_url)
         soup = BeautifulSoup(response.content, 'html.parser')
+
+        # Extract the necessary form data (__VIEWSTATE, __VIEWSTATEGENERATOR, __EVENTVALIDATION)
         viewstate = soup.find('input', {'name': '__VIEWSTATE'})['value']
         viewstate_generator = soup.find('input', {'name': '__VIEWSTATEGENERATOR'})['value']
         event_validation = soup.find('input', {'name': '__EVENTVALIDATION'})['value']
 
+        # Step 2: Simulate the selection of the "Parent" radio button (rdolst_3) with a POST request
+        parent_radio_data = {
+            '__VIEWSTATE': viewstate,
+            '__VIEWSTATEGENERATOR': viewstate_generator,
+            '__EVENTVALIDATION': event_validation,
+            'rdolst': 'P',  # Selecting "Parent"
+            '__EVENTTARGET': 'rdolst$3',  # Trigger the postback for the "Parent" option
+            '__EVENTARGUMENT': ''  # Keep this blank as per POST-back behavior
+        }
+
+        # Send POST request to select "Parent" option
+        post_response = session.post(login_url, data=parent_radio_data)
+
+        # Check if we reached the parent login page
+        if 'Parent' not in post_response.text:
+            raise ValueError("Failed to reach the parent login page.")
+
+        # Parse the response again to get updated form data
+        soup = BeautifulSoup(post_response.content, 'html.parser')
+        viewstate = soup.find('input', {'name': '__VIEWSTATE'})['value']
+        viewstate_generator = soup.find('input', {'name': '__VIEWSTATEGENERATOR'})['value']
+        event_validation = soup.find('input', {'name': '__EVENTVALIDATION'})['value']
+
+        # Step 3: Perform the login as Parent
         login_data = {
             '__VIEWSTATE': viewstate,
             '__VIEWSTATEGENERATOR': viewstate_generator,
             '__EVENTVALIDATION': event_validation,
-            'txtusercheck': user,  # Replace with actual username
-            'txtpwdcheck': pwd,  # Replace with actual password
+            'txtusercheck': user,  # This is the 10-digit mobile number as roll number
+            'txtpwdcheck': pwd,  # This is the password (usually mobile number)
             'abcd3': 'Login'
         }
 
@@ -79,11 +105,11 @@ def register():
             "rollNo": rollNo,
             "password": password,
             "notifications": {
-                "attendance": False,
-                "marks": False,
-                "timetable": False,
-                "seatingArrangement": False,
-                "results": False
+                "attendance": True,
+                "marks": True,
+                "timetable": True,
+                "seatingArrangement": True,
+                "results": True,
             },
             "cgpa": None
         }
@@ -104,7 +130,7 @@ def register():
 
 # Email setup
 def send_email(subject, body, recipient):
-    sender_email = "22zz212@psgtech.ac.in"
+    sender_email = "22z212@psgtech.ac.in"
     password = "evtz vwnw pwpq tanh"
 
     msg = MIMEText(body)

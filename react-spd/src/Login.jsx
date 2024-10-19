@@ -64,7 +64,7 @@ const Login = () => {
           <input
             type="text"
             value={rollNo}
-            onChange={(e) => setRollNo(e.target.value)}
+            onChange={(e) => setRollNo(e.target.value.toUpperCase())}
             className="block w-full p-4 pt-6 border border-[#5b2a6e] rounded-lg text-gray-700 placeholder-transparent focus:outline-none focus:border-[#BFACC8] focus:ring-2 focus:ring-[#BFACC8] transition duration-200 peer"
             required
           />

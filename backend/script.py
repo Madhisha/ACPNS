@@ -7,7 +7,7 @@ import re
 
 client = MongoClient("mongodb+srv://22z212:TfVGyfVhyjG8hkNJ@cluster0.gbcugd2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 db = client['ecampus']
-user_collection = db['users']
+user_collection = db['new_users']
 attendance_collection = db['attendance']
 result_collection = db['result']
 
@@ -18,7 +18,7 @@ def send_email(subject, body, recipient_list):
     msg = MIMEText(body)
     msg['Subject'] = subject
     msg['From'] = sender_email
-    msg['To'] = ", ".join(recipient_list)
+    msg['To'] = recipient_list
 
     try:
         with smtplib.SMTP('smtp.gmail.com', 587) as server:
@@ -28,48 +28,79 @@ def send_email(subject, body, recipient_list):
     except Exception as e:
         print(f"Error sending email: {e}")
 
-def get_attendance_data():
-    login_url = 'https://ecampus.psgtech.ac.in/studzone2/'
+def get_attendance_data(session, user):
     try:
-        session = requests.Session()
-        response = session.get(login_url)
-        soup = BeautifulSoup(response.content, 'html.parser')
-        viewstate = soup.find('input', {'name': '__VIEWSTATE'})['value']
-        viewstate_generator = soup.find('input', {'name': '__VIEWSTATEGENERATOR'})['value']
-        event_validation = soup.find('input', {'name': '__EVENTVALIDATION'})['value']
-
-        login_data = {
-            '__VIEWSTATE': viewstate,
-            '__VIEWSTATEGENERATOR': viewstate_generator,
-            '__EVENTVALIDATION': event_validation,
-            'txtusercheck': '22z212',
-            'txtpwdcheck': 'cheran#212',
-            'abcd3': 'Login'
-        }
-
-        response = session.post(login_url, data=login_data)
-        if "login failed" in response.text.lower():
-            # print(f"Login failed for user {user['rollNo']}.")
-            return None
-
+        # Fetch the attendance page
         attendance_page_response = session.get("https://ecampus.psgtech.ac.in/studzone2/AttWfPercView.aspx")
-        attendance_page_soup = BeautifulSoup(attendance_page_response.content, 'html.parser')
+        soup = BeautifulSoup(attendance_page_response.content, 'html.parser')
 
-        attendance_table = attendance_page_soup.find('table', {'id': 'PDGcourpercView'})
-        headers = [header.text.strip() for header in attendance_table.find_all('tr')[0].find_all('td')]
-        rows = attendance_table.find_all('tr', {'onmouseover': "javascript:prettyDG_changeBackColor(this, true);"})
+        # Find the attendance table
+        table = soup.find('table', id='PDGcourpercView')
+        if table is None:
+            print("Attendance table not found.")
+            return
 
-        if rows:
-            first_row = rows[0]
-            cells = first_row.find_all('td')
-            row_data = [cell.text.strip() for cell in cells]
-            date_index = headers.index('ATTENDANCE PERCENTAGE TO')
-            attendance_data = row_data[date_index]
-            seating = check_seating(session)
+        # Construct the HTML table
+        html_table = "<table border='1' cellpadding='5' cellspacing='0'>"
+        
+        # Extract table headers
+        headers = [header.get_text(strip=True) for header in table.find_all('th')]
+        html_table += "<tr>"
+        for header in headers:
+            html_table += f"<th>{header}</th>"
+        html_table += "</tr>"
 
-            return attendance_data, seating
+        # Extract table rows, skipping the first row (header)
+        for row in table.find_all('tr')[1:]:
+            columns = [col.get_text(strip=True) for col in row.find_all('td')]
+            html_table += "<tr>"
+            for col in columns:
+                html_table += f"<td>{col}</td>"
+            html_table += "</tr>"
+        
+        html_table += "</table>"
+
+        # Retrieve the previous attendance table from MongoDB
+        previous_attendance = user_collection.find_one({'rollNo': user['rollNo']}).get('attendance_table')
+
+        # Compare the current attendance with the previous one
+        if previous_attendance != html_table:
+            # Update the user's attendance table in MongoDB
+            user_collection.update_one(
+                {'rollNo': user['rollNo']},
+                {'$set': {'attendance_table': html_table}}
+            )
+
+            # Send an email notifying that attendance has been updated
+            subject = "Attendance Update Notification"
+            body = f"""
+            Dear {user['rollNo']},
+
+            We hope this email finds you well.
+
+            Please note that your attendance data has been updated. The latest details are provided below:
+
+            {html_table}
+
+            Kindly review the updated attendance on the portal.
+
+            Best regards,
+            Notifii Team
+            """
+
+            send_email([user['rollNo'] + "@psgtech.ac.in"], subject, body)
+            print(f"Attendance update email sent to {user['rollNo']}")
+        else:
+            print(f"No change in attendance for {user['rollNo']}")
+
+        return
+
+    except requests.RequestException as e:
+        print(f"Error fetching the attendance data: {e}")
+        return None
+
     except Exception as e:
-        print(f"Error fetching attendance data: {e}")
+        print(f"Error processing attendance data: {e}")
         return None
 
 def login(user):
@@ -77,22 +108,45 @@ def login(user):
     login_url = 'https://ecampus.psgtech.ac.in/studzone2/'
 
     try:
-        session = requests.Session()
-        login_url = 'https://ecampus.psgtech.ac.in/studzone2/'
-
-        # Perform login
+        # Step 1: Access the initial login page
         response = session.get(login_url)
         soup = BeautifulSoup(response.content, 'html.parser')
+
+        # Extract the necessary form data (__VIEWSTATE, __VIEWSTATEGENERATOR, __EVENTVALIDATION)
         viewstate = soup.find('input', {'name': '__VIEWSTATE'})['value']
         viewstate_generator = soup.find('input', {'name': '__VIEWSTATEGENERATOR'})['value']
         event_validation = soup.find('input', {'name': '__EVENTVALIDATION'})['value']
 
+        # Step 2: Simulate the selection of the "Parent" radio button (rdolst_3) with a POST request
+        parent_radio_data = {
+            '__VIEWSTATE': viewstate,
+            '__VIEWSTATEGENERATOR': viewstate_generator,
+            '__EVENTVALIDATION': event_validation,
+            'rdolst': 'P',  # Selecting "Parent"
+            '__EVENTTARGET': 'rdolst$3',  # Trigger the postback for the "Parent" option
+            '__EVENTARGUMENT': ''  # Keep this blank as per POST-back behavior
+        }
+
+        # Send POST request to select "Parent" option
+        post_response = session.post(login_url, data=parent_radio_data)
+
+        # Check if we reached the parent login page
+        if 'Parent' not in post_response.text:
+            raise ValueError("Failed to reach the parent login page.")
+
+        # Parse the response again to get updated form data
+        soup = BeautifulSoup(post_response.content, 'html.parser')
+        viewstate = soup.find('input', {'name': '__VIEWSTATE'})['value']
+        viewstate_generator = soup.find('input', {'name': '__VIEWSTATEGENERATOR'})['value']
+        event_validation = soup.find('input', {'name': '__EVENTVALIDATION'})['value']
+
+        # Step 3: Perform the login as Parent
         login_data = {
             '__VIEWSTATE': viewstate,
             '__VIEWSTATEGENERATOR': viewstate_generator,
             '__EVENTVALIDATION': event_validation,
-            'txtusercheck': user['rollNo'],  # Replace with actual username
-            'txtpwdcheck': user['password'],  # Replace with actual password
+            'txtusercheck': user['rollNo'],  # This is the 10-digit mobile number as roll number
+            'txtpwdcheck': user['password'],  # This is the password (usually mobile number)
             'abcd3': 'Login'
         }
 
@@ -163,7 +217,7 @@ def check_timetable(session, user):
         Notifii Team
         """
         # Corrected function call
-        send_email([recipient_email], subject, body)
+        send_email(recipient_email, subject, body)
 
     except Exception as e:
         print(f"Error checking test timetable: {e}")
@@ -227,7 +281,7 @@ def calculate_cgpa(data, user):
                 recipient_email = user['rollNo'] + "@psgtech.ac.in"
                 send_email("Result Update Notification", 
                     f"Dear Student,\n\nWe are pleased to inform you that your academic results have been published. Your current Cumulative Grade Point Average (CGPA) is: {cgpa}. Please log in to the eCampus portal for detailed information.\n\nShould you require any assistance or have any queries, please do not hesitate to contact us for support.\n\nBest regards,\nNotifii Team", 
-                    [recipient_email])
+                    recipient_email)
             else:
                 print(f"No change in CGPA for {user['rollNo']}. No email sent.")
         else:
@@ -268,7 +322,7 @@ def mark_update(session, user):
             all_tables_data_string += table_data_string + " || "  # Delimiter for each table
 
         # Step 6: Check for changes in marks
-        stored_marks_string = user.get('marks_string', '')  # Get stored string, default to empty if not found
+        stored_marks_string = user.get('marks', '')  # Get stored string, default to empty if not found
 
         if stored_marks_string != all_tables_data_string:
             # If marks are different, update MongoDB with new data
@@ -276,14 +330,14 @@ def mark_update(session, user):
                 {'rollNo': user['rollNo']},
                 {
                     '$set': {
-                        'marks_string': all_tables_data_string,  # Store the concatenated string for future comparisons
+                        'marks': all_tables_data_string,  # Store the concatenated string for future comparisons
                     }
                 }
             )
             print(f"Updated marks for {user['rollNo']}.")
             send_email("Marks Update Notification", 
            "Dear Student,\n\nWe wish to inform you that your marks have been updated. Please log in to the eCampus portal to review the changes.\n\nIf you need any assistance, feel free to reach out to us for support.\n\nBest regards,\nNotifii Team", 
-           [user['rollNo'] + "@psgtech.ac.in"])
+           user['rollNo'] + "@psgtech.ac.in")
 
         else:
             print(f"No new marks for {user['rollNo']}.")
@@ -295,25 +349,12 @@ def mark_update(session, user):
 
 
 users = user_collection.find()
-previous_data = list(attendance_collection.find({}, {'_id': 0}))
-current_data, seating_arrangement = get_attendance_data()
-previous_data = previous_data[0]['attendance_date'] if previous_data else None
-print(current_data, previous_data)
-if current_data != previous_data and current_data != None:
-    attendance_collection.update_one({}, {'$set': {'attendance_date': current_data}})
-    attendance_change = True
-else:
-    attendance_change = False
 
 for user in users:
     if isinstance(user.get('notifications'), dict):
-        if user['notifications'].get('attendance', False) and attendance_change:
-            recipient_email = user['rollNo'] + "@psgtech.ac.in"
-            send_email("Attendance Update Notification", 
-    "Dear Student,\n\nPlease be informed that there has been an update to your attendance data. We kindly request you to log in to the eCampus portal to review the changes.\n\nIf you have any questions or require further assistance, feel free to contact us.\n\nBest regards,\nnotifii", 
-    [recipient_email])
-            print(f"Email sent regarding attendance update to {recipient_email}.")
         session = login(user)
+        if user['notifications'].get('attendance', False):
+            get_attendance_data(session, user)
         if user['notifications'].get('timetable', False):
             check_timetable(session, user)
         if user['notifications'].get('results', False):
@@ -323,10 +364,10 @@ for user in users:
                 calculate_cgpa(result_data, user)
         if user['notifications'].get('marks', False):
             mark_update(session, user)
-        if user['notifications'].get('seatingArrangement', False) and seating_arrangement:
+        if user['notifications'].get('seatingArrangement', False) and check_seating(session):
             recipient_email = user['rollNo'] + "@psgtech.ac.in"
             send_email(
                 "Seating Update Notification",
                 "Dear Student,\n\nWe are pleased to inform you that the seating allotment has been published. Please log in to the eCampus portal to view your seating arrangement.\n\nIf you have any questions or require further assistance, feel free to contact us.\n\nBest regards,\nNotifii Team",
-                [recipient_email]
+                recipient_email
             )
