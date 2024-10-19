@@ -97,7 +97,7 @@ const Registration = () => {
           <label
             className="absolute top-0 left-3 px-1 text-[#5b2a6e] bg-white transform -translate-y-2.5 scale-90"
           >
-            Password
+            Parent Mobile No
           </label>
 
           {/* Eye Icon for showing/hiding password */}
