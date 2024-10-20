@@ -78,21 +78,29 @@ def get_attendance_data(session, user):
             # Send an email notifying that attendance has been updated
             subject = "Attendance Update Notification"
             body = f"""
-            Dear {user['rollNo']},
+            <html>
+                <body>
+                    <p>Dear {user['rollNo']},</p>
 
-            We hope this email finds you well.
+                    <p>We hope this email finds you well.</p>
 
-            Please note that your attendance data has been updated. The latest details are provided below:
+                    <p>Please note that your attendance data has been updated. The latest details are provided below:</p>
 
-            {html_table}
+                    {html_table}
 
-            Kindly review the updated attendance on the portal.
+                    <p>Kindly review the updated attendance on the portal.</p>
+                    <p>You can modify your notification preferences in the Notifii web application.<br>
+                    <a href="https://notifii.vercel.app">Notifii Web Application</a></p>
 
-            Best regards,
-            Notifii Team
+                    <p>Best regards,</p>
+                    <p>Notifii Team</p>
+                </body>
+            </html>
             """
+            recipient_email = user['rollNo'] + "@psgtech.ac.in"
+            recipient_email = recipient_email.lower()  # Ensure the email is in lowercase
 
-            send_email([user['rollNo'] + "@psgtech.ac.in"], subject, body)
+            send_email(recipient_email, subject, body)
             print(f"Attendance update email sent to {user['rollNo']}")
         else:
             print(f"No change in attendance for {user['rollNo']}")
@@ -292,10 +300,28 @@ def calculate_cgpa(data, user):
 
             if previous_cgpa is None or cgpa != previous_cgpa:
                 user_collection.update_one({'rollNo': user['rollNo']}, {'$set': {'cgpa': cgpa}})
-                recipient_email = user['rollNo'] + "@psgtech.ac.in"
-                send_email("Result Update Notification", 
-                    f"Dear Student,\n\nWe are pleased to inform you that your academic results have been published. Your current Cumulative Grade Point Average (CGPA) is: {cgpa}. Please log in to the eCampus portal for detailed information.\n\nShould you require any assistance or have any queries, please do not hesitate to contact us for support.\n\nBest regards,\nNotifii Team", 
-                    recipient_email)
+                roll = user['rollNo'].lower()  # Ensure the roll number is valid
+                recipient_email = roll + "@psgtech.ac.in"   
+                send_email(recipient_email, "Result Update Notification", 
+                    f"""
+                    <html>
+                        <body>
+                            <p>Dear Student,</p>
+
+                            <p>We are pleased to inform you that your academic results have been published.</p>
+
+                            <p>Your current semester Grade Point Average (GPA) is: <strong>{cgpa}</strong>.</p>
+
+                            <p>Please log in to the eCampus portal for detailed information.</p>
+
+                            <p>Should you require any assistance or have any queries, please do not hesitate to contact us for support.</p>
+
+                            <p>Best regards,</p>
+                            <p>Notifii Team</p>
+                        </body>
+                    </html>
+                    """)
+
             else:
                 print(f"No change in CGPA for {user['rollNo']}. No email sent.")
         else:
@@ -349,9 +375,26 @@ def mark_update(session, user):
                 }
             )
             print(f"Updated marks for {user['rollNo']}.")
-            send_email("Marks Update Notification", 
-           "Dear Student,\n\nWe wish to inform you that your marks have been updated. Please log in to the eCampus portal to review the changes.\n\nIf you need any assistance, feel free to reach out to us for support.\n\nBest regards,\nNotifii Team", 
-           user['rollNo'] + "@psgtech.ac.in")
+            roll = user['rollNo'].lower()  # Ensure the roll number is valid
+            recipient_email = roll + "@psgtech.ac.in"   
+            send_email(recipient_email, "Marks Update Notification", 
+                f"""
+                <html>
+                    <body>
+                        <p>Dear Student,</p>
+
+                        <p>We wish to inform you that your marks have been updated.</p>
+
+                        <p>Please log in to the eCampus portal to review the changes.</p>
+
+                        <p>If you need any assistance, feel free to reach out to us for support.</p>
+
+                        <p>Best regards,</p>
+                        <p>Notifii Team</p>
+                    </body>
+                </html>
+                """)
+
 
         else:
             print(f"No new marks for {user['rollNo']}.")
@@ -379,9 +422,25 @@ for user in users:
         if user['notifications'].get('marks', False):
             mark_update(session, user)
         if user['notifications'].get('seatingArrangement', False) and check_seating(session):
-            recipient_email = user['rollNo'] + "@psgtech.ac.in"
-            send_email(
-                "Seating Update Notification",
-                "Dear Student,\n\nWe are pleased to inform you that the seating allotment has been published. Please log in to the eCampus portal to view your seating arrangement.\n\nIf you have any questions or require further assistance, feel free to contact us.\n\nBest regards,\nNotifii Team",
-                recipient_email
-            )
+            roll = user['rollNo'].lower()  # Ensure the roll number is valid
+            recipient_email = roll + "@psgtech.ac.in"   
+            send_email(recipient_email,  # Corrected this to pass the recipient email first
+           "Seating Update Notification",  # Subject of the email
+           f"""
+           <html>
+               <body>
+                   <p>Dear Student,</p>
+
+                   <p>We are pleased to inform you that the seating allotment has been published.</p>
+
+                   <p>Please log in to the eCampus portal to view your seating arrangement.</p>
+
+                   <p>If you have any questions or require further assistance, feel free to contact us.</p>
+
+                   <p>Best regards,</p>
+                   <p>Notifii Team</p>
+               </body>
+           </html>
+           """
+          )
+
