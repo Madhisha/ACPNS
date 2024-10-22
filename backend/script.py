@@ -55,7 +55,7 @@ def get_attendance_data(session, user):
         html_table += "</tr>"
 
         # Extract table rows, skipping the first row (header)
-        for row in table.find_all('tr')[1:]:
+        for row in table.find_all('tr'):
             columns = [col.get_text(strip=True) for col in row.find_all('td')]
             html_table += "<tr>"
             for col in columns:
@@ -245,17 +245,35 @@ def check_timetable(session, user):
         print(f"Error checking test timetable: {e}")
         return None
 
-def check_seating(session):
+def check_seating(session, user):
     try:
+        # Get seating page content
         seating_page = session.get("https://ecampus.psgtech.ac.in/studzone2/EpsWfSeating.aspx")
         seating_page_soup = BeautifulSoup(seating_page.content, 'html.parser')
         script_tag = str(seating_page_soup.find('script')).strip()
         expected_script_tag = "<script>alert(' Seating not Allotted  ')</script>"
-        if script_tag == expected_script_tag or script_tag == None:
+
+        # Initialize seating field if it doesn't exist
+        if 'seating' not in user:
+            user['seating'] = 'not_allotted'
+            user_collection.update_one({'rollNo': user['rollNo']}, {'$set': {'seating': 'not_allotted'}})
+
+        # Check if seating is allotted
+        if script_tag == expected_script_tag or script_tag is None:
             print("Seating not yet allotted.")
+            if user['seating'] != 'not_allotted':
+                # Update if the seating status was previously different
+                user_collection.update_one({'rollNo': user['rollNo']}, {'$set': {'seating': 'not_allotted'}})
+            return False
         else:
             print("Seating allotted.")
-            return True  # Indicates seating is allotted
+            if user['seating'] == 'allotted':
+                print("No change in seating status.")
+                return False
+            else:
+                # Update the seating status in MongoDB if it's newly allotted
+                user_collection.update_one({'rollNo': user['rollNo']}, {'$set': {'seating': 'allotted'}})
+                return True  # Indicates seating is allotted
     except Exception as e:
         print(f"Error checking seating allotment: {e}")
         return None
@@ -421,7 +439,7 @@ for user in users:
                 calculate_cgpa(result_data, user)
         if user['notifications'].get('marks', False):
             mark_update(session, user)
-        if user['notifications'].get('seatingArrangement', False) and check_seating(session):
+        if user['notifications'].get('seatingArrangement', False) and check_seating(session, user):
             roll = user['rollNo'].lower()  # Ensure the roll number is valid
             recipient_email = roll + "@psgtech.ac.in"   
             send_email(recipient_email,  # Corrected this to pass the recipient email first

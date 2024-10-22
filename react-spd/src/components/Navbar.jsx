@@ -90,14 +90,14 @@ const Navbar = () => {
               Contact
             </a>
           </li>
-          <li>
+          {/* <li>
             <a
               href="/register"
               className="relative hover:text-[#783F8E] hover:scale-105 transition-all duration-300 before:content-[''] before:absolute before:left-0 before:bottom-[-2px] before:w-0 before:h-0.5 before:bg-[#783F8E] before:transition-all before:duration-300 hover:before:w-full"
             >
               Register
             </a>
-          </li>
+          </li> */}
           <li>
             <a
               href="/login"
