@@ -4,6 +4,8 @@ from pymongo import MongoClient
 import smtplib
 from email.mime.text import MIMEText
 import re
+import time
+import schedule
 
 client = MongoClient("mongodb+srv://22z212:TfVGyfVhyjG8hkNJ@cluster0.gbcugd2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 db = client['ecampus']
@@ -360,6 +362,7 @@ def extract_table_data_as_string(table):
     return " | ".join(table_data)
 
 def mark_update(session, user):
+    
     try:
         # Step 4: Access the marks page
         marks_page_url = "https://ecampus.psgtech.ac.in/studzone2/CAMarks_View.aspx"
@@ -371,89 +374,94 @@ def mark_update(session, user):
         # Step 5: Iterate over all tables on the page
         regex_pattern = re.compile(r'^8')  # Regular expression for IDs starting with '8'
         all_tables = marks_page_soup.find_all('table', id=regex_pattern)  # Find all tables
-        all_tables_html = ""  # String to store concatenated HTML for all tables
+        all_tables_data_string = ""  # String to store concatenated data from all tables
 
         for table in all_tables:
-            # Append each table's HTML representation to the combined HTML string
-            all_tables_html += str(table) + "<br>"  # Adding a line break between tables for readability
+            # Extract and append data from each table
+            table_data_string = extract_table_data_as_string(table)
+            all_tables_data_string += table_data_string + " || "  # Delimiter for each table
 
         # Step 6: Check for changes in marks
-        stored_marks_html = user.get('marks', '')  # Get stored HTML, default to empty if not found
+        stored_marks_string = user.get('marks', '')  # Get stored string, default to empty if not found
 
-        if stored_marks_html != all_tables_html:
-            # If marks are different, update MongoDB with new HTML data
+        if stored_marks_string != all_tables_data_string:
+            # If marks are different, update MongoDB with new data
             user_collection.update_one(
                 {'rollNo': user['rollNo']},
                 {
                     '$set': {
-                        'marks': all_tables_html,  # Store the HTML content for future comparisons
+                        'marks': all_tables_data_string,  # Store the concatenated string for future comparisons
                     }
                 }
             )
             print(f"Updated marks for {user['rollNo']}.")
             roll = user['rollNo'].lower()  # Ensure the roll number is valid
-            recipient_email = roll + "@psgtech.ac.in"
-            send_email(
-                recipient_email,
-                "Marks Update Notification",
+            recipient_email = roll + "@psgtech.ac.in"   
+            send_email(recipient_email, "Marks Update Notification", 
                 f"""
                 <html>
                     <body>
                         <p>Dear Student,</p>
-                        <p>We wish to inform you that your marks have been updated. Please see the details below:</p>
-                        {all_tables_html} 
-                        <p>Please log in to the eCampus portal to review the changes in detail.</p>
+
+                        <p>We wish to inform you that your marks have been updated.</p>
+
+                        <p>Please log in to the eCampus portal to review the changes.</p>
+
                         <p>If you need any assistance, feel free to reach out to us for support.</p>
+
                         <p>Best regards,</p>
                         <p>Notifii Team</p>
                     </body>
                 </html>
-                """
-            )
+                """)
+
+
         else:
-            print(f"No new marks for {user['rollNo']}.")                    
+            print(f"No new marks for {user['rollNo']}.")
 
     except requests.exceptions.HTTPError as http_err:
         print(f"HTTP error occurred for user {user['rollNo']}: {http_err}")
     except Exception as e:
         print(f"Error processing result data for {user['rollNo']}: {e}")
 
-users = user_collection.find()
 
-for user in users:
-    if isinstance(user.get('notifications'), dict) and "Z2" not in user['rollNo']:
-        session = login(user)
-        if user['notifications'].get('attendance', False):
-            get_attendance_data(session, user)
-        if user['notifications'].get('timetable', False):
-            check_timetable(session, user)
-        if user['notifications'].get('results', False):
-            print(user['rollNo'])
-            result_data = get_result_data(session)
-            if result_data:
-                calculate_cgpa(result_data, user)
-        if user['notifications'].get('marks', False):
-            mark_update(session, user)
-        if user['notifications'].get('seatingArrangement', False) and check_seating(session, user):
-            roll = user['rollNo'].lower()  # Ensure the roll number is valid
-            recipient_email = roll + "@psgtech.ac.in"   
-            send_email(recipient_email,  # Corrected this to pass the recipient email first
-           "Seating Update Notification",  # Subject of the email
-           f"""
-           <html>
-               <body>
-                   <p>Dear Student,</p>
+def scripts():
+    users = user_collection.find()
+    for user in users:
+        if isinstance(user.get('notifications'), dict):
+            session = login(user)
+            if user['notifications'].get('attendance', False):
+                get_attendance_data(session, user)
+            if user['notifications'].get('timetable', False):
+                check_timetable(session, user)
+            if user['notifications'].get('results', False):
+                result_data = get_result_data(session)
+                if result_data:
+                    calculate_cgpa(result_data, user)
+            if user['notifications'].get('marks', False):
+                mark_update(session, user)
+            if user['notifications'].get('seatingArrangement', False) and check_seating(session, user):
+                roll = user['rollNo'].lower()
+                recipient_email = roll + "@psgtech.ac.in"
+                send_email(recipient_email, "Seating Update Notification", 
+                    f"""
+                    <html>
+                        <body>
+                            <p>Dear Student,</p>
+                            <p>We are pleased to inform you that the seating allotment has been published.</p>
+                            <p>Please log in to the eCampus portal to view your seating arrangement.</p>
+                            <p>If you have any questions or require further assistance, feel free to contact us.</p>
+                            <p>Best regards,</p>
+                            <p>Notifii Team</p>
+                        </body>
+                    </html>
+                    """
+                )
 
-                   <p>We are pleased to inform you that the seating allotment has been published.</p>
+# Schedule the job to run every day at a specific time
+schedule.every(2).minutes.do(scripts)
 
-                   <p>Please log in to the eCampus portal to view your seating arrangement.</p>
-
-                   <p>If you have any questions or require further assistance, feel free to contact us.</p>
-
-                   <p>Best regards,</p>
-                   <p>Notifii Team</p>
-               </body>
-           </html>
-           """
-          )
-
+# Keep the script running to execute scheduled jobs
+while True:
+    schedule.run_pending()
+    time.sleep(1)

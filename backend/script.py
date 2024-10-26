@@ -360,7 +360,6 @@ def extract_table_data_as_string(table):
     return " | ".join(table_data)
 
 def mark_update(session, user):
-    
     try:
         # Step 4: Access the marks page
         marks_page_url = "https://ecampus.psgtech.ac.in/studzone2/CAMarks_View.aspx"
@@ -372,50 +371,47 @@ def mark_update(session, user):
         # Step 5: Iterate over all tables on the page
         regex_pattern = re.compile(r'^8')  # Regular expression for IDs starting with '8'
         all_tables = marks_page_soup.find_all('table', id=regex_pattern)  # Find all tables
-        all_tables_data_string = ""  # String to store concatenated data from all tables
+        all_tables_html = ""  # String to store concatenated HTML for all tables
 
         for table in all_tables:
-            # Extract and append data from each table
-            table_data_string = extract_table_data_as_string(table)
-            all_tables_data_string += table_data_string + " || "  # Delimiter for each table
+            # Append each table's HTML representation to the combined HTML string
+            all_tables_html += str(table) + "<br>"  # Adding a line break between tables for readability
 
         # Step 6: Check for changes in marks
-        stored_marks_string = user.get('marks', '')  # Get stored string, default to empty if not found
+        stored_marks_html = user.get('marks', '')  # Get stored HTML, default to empty if not found
 
-        if stored_marks_string != all_tables_data_string:
-            # If marks are different, update MongoDB with new data
+        if stored_marks_html != all_tables_html:
+            # If marks are different, update MongoDB with new HTML data
             user_collection.update_one(
                 {'rollNo': user['rollNo']},
                 {
                     '$set': {
-                        'marks': all_tables_data_string,  # Store the concatenated string for future comparisons
+                        'marks': all_tables_html,  # Store the HTML content for future comparisons
                     }
                 }
             )
             print(f"Updated marks for {user['rollNo']}.")
             roll = user['rollNo'].lower()  # Ensure the roll number is valid
-            recipient_email = roll + "@psgtech.ac.in"   
-            send_email(recipient_email, "Marks Update Notification", 
+            recipient_email = roll + "@psgtech.ac.in"
+            send_email(
+                recipient_email,
+                "Marks Update Notification",
                 f"""
                 <html>
                     <body>
                         <p>Dear Student,</p>
-
-                        <p>We wish to inform you that your marks have been updated.</p>
-
-                        <p>Please log in to the eCampus portal to review the changes.</p>
-
+                        <p>We wish to inform you that your marks have been updated. Please see the details below:</p>
+                        {all_tables_html} 
+                        <p>Please log in to the eCampus portal to review the changes in detail.</p>
                         <p>If you need any assistance, feel free to reach out to us for support.</p>
-
                         <p>Best regards,</p>
                         <p>Notifii Team</p>
                     </body>
                 </html>
-                """)
-
-
+                """
+            )
         else:
-            print(f"No new marks for {user['rollNo']}.")
+            print(f"No new marks for {user['rollNo']}.")                    
 
     except requests.exceptions.HTTPError as http_err:
         print(f"HTTP error occurred for user {user['rollNo']}: {http_err}")
