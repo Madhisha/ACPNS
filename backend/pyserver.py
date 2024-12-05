@@ -8,13 +8,12 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import re
 
-
 app = Flask(__name__)
 CORS(app, supports_credentials=True)  
 
 MONGO_URI = 'mongodb+srv://22z212:TfVGyfVhyjG8hkNJ@cluster0.gbcugd2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'  # Replace with your MongoDB Cloud URI
 DB_NAME = 'ecampus'  # Replace with your database name
-USERS_COLLECTION = 'users'  # Collection name
+USERS_COLLECTION = 'new_users'  # Collection name
 
 client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
@@ -29,7 +28,6 @@ def login_to_ecampus(user, pwd):
         # Step 1: Access the initial login page
         response = session.get(login_url)
         soup = BeautifulSoup(response.content, 'html.parser')
-
         # Extract the necessary form data (__VIEWSTATE, __VIEWSTATEGENERATOR, __EVENTVALIDATION)
         viewstate = soup.find('input', {'name': '__VIEWSTATE'})['value']
         viewstate_generator = soup.find('input', {'name': '__VIEWSTATEGENERATOR'})['value']
@@ -44,20 +42,18 @@ def login_to_ecampus(user, pwd):
             '__EVENTTARGET': 'rdolst$3',  # Trigger the postback for the "Parent" option
             '__EVENTARGUMENT': ''  # Keep this blank as per POST-back behavior
         }
-
         # Send POST request to select "Parent" option
         post_response = session.post(login_url, data=parent_radio_data)
-
+        user = user.replace("Z","z")
         # Check if we reached the parent login page
         if 'Parent' not in post_response.text:
             raise ValueError("Failed to reach the parent login page.")
-
         # Parse the response again to get updated form data
         soup = BeautifulSoup(post_response.content, 'html.parser')
         viewstate = soup.find('input', {'name': '__VIEWSTATE'})['value']
         viewstate_generator = soup.find('input', {'name': '__VIEWSTATEGENERATOR'})['value']
         event_validation = soup.find('input', {'name': '__EVENTVALIDATION'})['value']
-
+        print(user)
         # Step 3: Perform the login as Parent
         login_data = {
             '__VIEWSTATE': viewstate,
@@ -69,7 +65,7 @@ def login_to_ecampus(user, pwd):
         }
 
         response = session.post(login_url, data=login_data)
-        
+
         # Check if login was successful by attempting to fetch the attendance page
         attendance_page_response = session.get("https://ecampus.psgtech.ac.in/studzone2/AttWfPercView.aspx")
         if 'ASP.NET Ajax client-side framework failed to load.' in attendance_page_response.text:
@@ -81,7 +77,7 @@ def login_to_ecampus(user, pwd):
         return False
     except Exception as err:
         return False
-    
+
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -109,12 +105,12 @@ def register():
                 "marks": True,
                 "timetable": True,
                 "seatingArrangement": True,
-                "results": True,
+                "results": True
             },
             "cgpa": None
         }
 
-        # Fetch results and update the user data
+        # Fetch results and update the users data
         result = get_result_data(session)
         new_user['cgpa'] = calculate_cgpa(result)
         new_user['marks'] = mark_update(session)
@@ -130,7 +126,7 @@ def register():
 
 # Email setup
 def send_email(subject, body, recipient):
-    sender_email = "22z212@psgtech.ac.in"
+    sender_email = "notifii.services@gmail.com"
     password = "evtz vwnw pwpq tanh"
 
     msg = MIMEText(body)
@@ -155,13 +151,16 @@ def get_result_data(session):
     result_data = []
     titles = [title.text for title in result_table.find_all('tr')[0].find_all('td')]
 
+    final_table = str(result_table)
+
+
     rows = result_table.find_all('tr')[1:]  # Skip the header row
     for row in rows:
         cells = row.find_all('td')
         row_data = [cell.text.strip() for cell in cells]
         result_data.append(dict(zip(titles, row_data)))
 
-    return result_data
+    return result_data, final_table
 
 
 def calculate_cgpa(data):
@@ -185,7 +184,7 @@ def calculate_cgpa(data):
             print(f"No valid credit data for user.")
     except Exception as e:
         print(f"Error calculating CGPA for user: {e}")
-    
+
 def extract_table_data_as_string(table):
     """Extract data from the table and return it as a concatenated string for comparison."""
     table_data = []
@@ -199,25 +198,28 @@ def extract_table_data_as_string(table):
     return " | ".join(table_data)
 
 def mark_update(session):
-    
-    marks_page_url = "https://ecampus.psgtech.ac.in/studzone2/CAMarks_View.aspx"
-    marks_page = session.get(marks_page_url)
-    marks_page.raise_for_status()
+    try:
+        # Step 4: Access the marks page
+        marks_page_url = "https://ecampus.psgtech.ac.in/studzone2/CAMarks_View.aspx"
+        marks_page = session.get(marks_page_url)
+        marks_page.raise_for_status()
 
-    marks_page_soup = BeautifulSoup(marks_page.content, 'html.parser')
+        marks_page_soup = BeautifulSoup(marks_page.content, 'html.parser')
 
-    # Step 5: Iterate over all tables on the page
-    regex_pattern = re.compile(r'^8')  # Regular expression for IDs starting with '8'
-    all_tables = marks_page_soup.find_all('table', id=regex_pattern)  # Find all tables
-    all_tables_data_string = ""  # String to store concatenated data from all tables
+        # Step 5: Iterate over all tables on the page
+        regex_pattern = re.compile(r'^8')  # Regular expression for IDs starting with '8'
+        all_tables = marks_page_soup.find_all('table', id=regex_pattern)  # Find all tables
+        all_tables_html = ""  # String to store concatenated HTML for all tables
 
-    for table in all_tables:
-        # Extract and append data from each table
-        table_data_string = extract_table_data_as_string(table)
-        all_tables_data_string += table_data_string + " || "  # Delimiter for each table
+        for table in all_tables:
+            # Append each table's HTML representation to the combined HTML string
+            all_tables_html += str(table) + "<br>"  # Adding a line break between tables for readability
 
-    # Step 6: Check for changes in marks
-    return all_tables_data_string
+        # Step 6: Check for changes in marks
+        
+        return all_tables_html
+    except Exception as e:
+        print(f"Error processing result data: {e}")
 
 # Login route
 @app.route('/login', methods=['POST'])
@@ -243,28 +245,25 @@ def login():
 
 # Profile fetching route
 @app.route('/profile', methods=['GET'])
-def get_profile():
+def profile():
     rollNo = request.args.get('rollNo')
+
     try:
-        user = users_collection.find_one({"rollNo": rollNo}, {"_id": 0})
+        user = users_collection.find_one({"rollNo": rollNo})
+
         if user:
-            default_notifications = {
-                "attendance": True,
-                "marks": True,
-                "timetable": True,
-                "seatingArrangement": True,
-                "results": True,
-            }
-            user['notifications'] = {**default_notifications, **user.get('notifications', {})}
+            # Convert ObjectId to string for JSON serialization
+            user['_id'] = str(user['_id'])
             return jsonify(user)
-        else:
-            return jsonify({"message": "User not found."}), 404
+
+        return jsonify({"message": "User not found."}), 404
 
     except Exception as e:
         print(f"Error fetching profile: {str(e)}")
         return jsonify({"message": "Server error. Please try again later."}), 500
 
-# Update notification settings
+
+# Update notification preferences
 @app.route('/notifications', methods=['POST'])
 def update_notifications():
     data = request.get_json()
@@ -272,21 +271,17 @@ def update_notifications():
     notifications = data.get('notifications')
 
     try:
-        if notifications:
-            result = users_collection.update_one({"rollNo": rollNo}, {"$set": {"notifications": notifications}})
-            if result.matched_count > 0:
-                return jsonify({"message": "Notification preferences updated successfully!"})
-            else:
-                return jsonify({"message": "User not found."}), 404
+        result = users_collection.update_one({"rollNo": rollNo}, {"$set": {"notifications": notifications}})
+
+        # Check how many documents were matched and updated
+        if result.matched_count > 0:
+            return jsonify({"message": "Notification preference updated successfully!"})
         else:
-            return jsonify({"message": "No notification preferences provided."}), 400
+            return jsonify({"message": "User not found."}), 404
+
     except Exception as e:
         print(f"Error updating notifications: {str(e)}")
         return jsonify({"message": "Server error. Please try again later."}), 500
-
-if __name__ == "__main__":
-    app.run(debug=True, port=5000)
-
 
 @app.route('/send-message', methods=['POST'])
 def send_message():
@@ -321,7 +316,6 @@ def send_message():
         return jsonify({'message': 'Email sent successfully!'}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

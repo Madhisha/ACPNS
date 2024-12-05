@@ -329,7 +329,7 @@ def calculate_cgpa(data, user, table):
                 recipient_email = roll + "@psgtech.ac.in"
                 send_email(
                     recipient_email,
-                    "Test Mail!!!!",
+                    "Results Published!!!!",
                     f"""
                     <html>
                         <body>
@@ -424,24 +424,29 @@ client = MongoClient(MONGO_URI, connectTimeoutMS=30000, socketTimeoutMS=30000)
 db = client['ecampus']
 user_collection = db['new_users']
 
-while True:
+def scripts():
     batch_size = 100  # Define the size of each batch
     total_users = user_collection.count_documents({})  # Get the total number of users
     batch_num = 0
+    processed_count = 0  # Counter to track processed users
+    max_limit = 10  # Set the limit for documents to process
 
-    while batch_num * batch_size < total_users:
+    while batch_num * batch_size < total_users and processed_count < max_limit:
         # Fetch the next batch of users
         users = user_collection.find({}).skip(batch_num * batch_size).limit(batch_size)
 
         for user in users:
-            if isinstance(user.get('notifications'), dict) and "24Z" not in user['rollNo']:
+            if processed_count >= max_limit:
+                break  # Stop processing if the limit is reached
+
+            if isinstance(user.get('notifications'), dict) and user['rollNo'] in ["22Z212", "22Z235", "22Z204", "22Z206", "22Z225", "22Z228", "22Z229", "22Z227", "22Z240", "22Z246"]:
                 session = login(user)
                 if user['notifications'].get('attendance', False):
                     get_attendance_data(session, user)
                 if user['notifications'].get('timetable', False):
                     check_timetable(session, user)
                 if user['notifications'].get('results', False):
-                    result_data,table = get_result_data(session)
+                    result_data, table = get_result_data(session)
                     if result_data:
                         calculate_cgpa(result_data, user, table)
                 if user['notifications'].get('marks', False):
@@ -449,7 +454,9 @@ while True:
                 if user['notifications'].get('seatingArrangement', False) and check_seating(session, user):
                     roll = user['rollNo'].lower()
                     recipient_email = roll + "@psgtech.ac.in"
-                    send_email(recipient_email, "Seating Update Notification", 
+                    send_email(
+                        recipient_email,
+                        "Seating Update Notification",
                         f"""
                         <html>
                             <body>
@@ -463,6 +470,14 @@ while True:
                         </html>
                         """
                     )
+                processed_count += 1  # Increment the processed user count
 
         batch_num += 1  # Move to the next batch
 
+# Schedule the job to run every day at a specific time
+schedule.every(1).minutes.do(scripts)
+
+# Keep the script running to execute scheduled jobs
+while True:
+    schedule.run_pending()
+    time.sleep(1)

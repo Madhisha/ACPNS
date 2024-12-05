@@ -8,8 +8,6 @@ import re
 client = MongoClient("mongodb+srv://22z212:TfVGyfVhyjG8hkNJ@cluster0.gbcugd2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 db = client['ecampus']
 user_collection = db['new_users']
-attendance_collection = db['attendance']
-result_collection = db['result']
 
 def send_email(recipient_email, subject, body):
     sender_email = "notifii.services@gmail.com"
@@ -54,7 +52,7 @@ def get_attendance_data(session, user):
             html_table += f"<th>{header}</th>"
         html_table += "</tr>"
 
-        # Extract table rows, skipping the first row (header)
+        # Extract table rows
         for row in table.find_all('tr'):
             columns = [col.get_text(strip=True) for col in row.find_all('td')]
             html_table += "<tr>"
@@ -359,6 +357,7 @@ def extract_table_data_as_string(table):
     # Return the concatenated string for the whole table
     return " | ".join(table_data)
 
+
 def mark_update(session, user):
     try:
         # Step 4: Access the marks page
@@ -422,7 +421,7 @@ def mark_update(session, user):
 users = user_collection.find()
 
 for user in users:
-    if isinstance(user.get('notifications'), dict):
+    if isinstance(user.get('notifications'), dict) and "24Z" not in user['rollNo']:
         session = login(user)
         if user['notifications'].get('attendance', False):
             get_attendance_data(session, user)
@@ -457,4 +456,3 @@ for user in users:
            </html>
            """
           )
-
