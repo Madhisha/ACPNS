@@ -1,7 +1,7 @@
 
 # How to Run the Project
 
-This project includes a Tailwind CSS-based web page with animations and a Python (Flask) backend. Follow the steps below to set up and run the project locally.
+This project includes a Tailwind CSS-based web page with animations and a Python (Flask)  Follow the steps below to set up and run the project locally.
 
 ## Prerequisites
 
