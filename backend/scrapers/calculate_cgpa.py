@@ -33,7 +33,7 @@ def calculate_cgpa(data, user, table):
                 recipient_email = roll + "@psgtech.ac.in"
                 send_email(
                     recipient_email,
-                    "Test Mail!!!!",
+                    "Results Published!!!!",
                     f"""
                     <html>
                         <body>
