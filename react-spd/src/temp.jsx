@@ -22,7 +22,7 @@ const Registration = () => {
         body: JSON.stringify({ rollNo, password }),
       });
 
-      if (response.status === 200) {
+      if (response.status === 200 || response.status === 201) {
         navigate('/thank-you');
         setLoading(false);
         // setTimeout(() => navigate('/thank-you'),3000)
