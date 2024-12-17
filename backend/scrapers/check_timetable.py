@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 from scrapers.send_mail import send_email
-from db import user_collection
+from database import user_collection
 
 def check_timetable(session, user):
     try:

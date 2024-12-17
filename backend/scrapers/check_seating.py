@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from db import user_collection
+from database import user_collection
 
 def check_seating(session, user):
     try:

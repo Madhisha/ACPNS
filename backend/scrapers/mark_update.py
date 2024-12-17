@@ -1,5 +1,5 @@
 import re
-from db import user_collection
+from database import user_collection
 from scrapers.send_mail import send_email
 from bs4 import BeautifulSoup
 import requests

@@ -1,4 +1,4 @@
-from db import user_collection
+from database import user_collection
 from scrapers.calculate_cgpa import calculate_cgpa
 from scrapers.check_seating import check_seating
 from scrapers.login import login
@@ -18,8 +18,6 @@ def process_users():
     while batch_num * batch_size < total_users and processed_count < max_limit:
         # Fetch the next batch of users
         users = user_collection.find({}).skip(batch_num * batch_size).limit(batch_size)
-        time = time.strftime("%H:%M:%S", time.localtime())
-        send_email("notifii.services@gmail.com", "Running now at time {time}", 'body')
 
         for user in users:
             if processed_count >= max_limit:

@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from scrapers.send_mail import send_email
-from db import user_collection
+from database import user_collection
 
 def get_attendance_data(session, user):
     try:

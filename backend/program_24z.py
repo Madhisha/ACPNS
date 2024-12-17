@@ -7,6 +7,7 @@ from scrapers.send_mail import send_email
 from scrapers.get_attendance import get_attendance_data
 from scrapers.get_result_data import get_result_data
 from scrapers.check_timetable import check_timetable
+import time
 
 while True:
     batch_size = 100  # Define the size of each batch
@@ -16,9 +17,10 @@ while True:
     while batch_num * batch_size < total_users:
         # Fetch the next batch of users
         users = user_collection.find({}).skip(batch_num * batch_size).limit(batch_size)
-
+        times = time.strftime("%H:%M:%S", time.localtime())
+        send_email("notifii.services@gmail.com", f"Running now at time {times}", 'body')
         for user in users:
-            if isinstance(user.get('notifications'), dict) and "24Z" not in user['rollNo']:
+            if isinstance(user.get('notifications'), dict) and "24Z" in user['rollNo']:
                 session = login(user)
                 if user['notifications'].get('attendance', False):
                     get_attendance_data(session, user)

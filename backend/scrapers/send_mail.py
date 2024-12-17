@@ -17,7 +17,7 @@ def send_email(recipient_email, subject, body):
             server.starttls()
             server.login(sender_email, password)
             server.sendmail(sender_email, recipient_email, msg.as_string())
-            print(f"Email successfully sent to {recipient_email}")
+            return(f"Email successfully sent to {recipient_email}")
     except Exception as e:
-        print(f"Error sending email: {e}")
+        return(f"Error sending email: {e}")
     

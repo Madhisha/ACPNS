@@ -221,29 +221,29 @@ def register(rollNo, password):
         <html>
         <body>
             <p>Dear Student,</p>
-            <p>We are excited to announce the launch of <strong>NOTIFII</strong>, our new Automated College Portal Notification System. With NOTIFII, you’ll always stay informed about important academic updates directly to your email, so you never miss out on crucial information.</p>
-            <p>Here’s what NOTIFII will do for you:</p>
+            <p>We are thrilled to welcome you to <strong>NOTIFII</strong>, your personalized Automated College Portal Notification System. With NOTIFII, staying informed has never been easier. Receive timely updates on all your essential academic information directly to your email.</p>
+            <p>Here’s how NOTIFII can make your academic journey smoother:</p>
             <ul>
-            <li><strong>Real-Time Notifications:</strong> Receive instant notifications for critical updates, including:
-                <ul>
-                <li>Exam schedules</li>
-                <li>Timetable releases</li>
-                <li>Grade releases, along with your CGPA calculation</li>
-                <li>Continuous Assessment (CA) marks</li>
-                <li>Attendance status</li>
-                <li>Seating arrangements</li>
-                </ul>
-            </li>
-            <p> By default result notification is disabled. If you want to enable it, please update your preferences in your profile.</p>
-            <li><strong>Automated Monitoring:</strong> NOTIFII automatically checks the college portal for any new updates, eliminating the need for manual checking, so you can focus on your academics.</li>
-            <li><strong>Customizable Preferences:</strong> You can tailor which notifications you want to receive and easily manage your preferences through a user-friendly interface.</li>
-            <li><strong>Efficient Communication:</strong> NOTIFII ensures timely and accurate updates on important academic events, helping you stay organized and prepared.</li>
+                <li><strong>Real-Time Notifications:</strong> Get instant alerts for:
+                    <ul>
+                        <li>Exam schedules</li>
+                        <li>Timetable releases</li>
+                        <li>Result announcements</li>
+                        <li>Continuous Assessment (CA) scores</li>
+                        <li>Attendance summaries</li>
+                        <li>Seating arrangements</li>
+                    </ul>
+                </li>
+                <p>Note: Result notifications are disabled by default. You can enable them by updating your preferences in your profile settings.</p>
+                <li><strong>Automated Updates:</strong> NOTIFII monitors your college portal for new updates, so you don’t have to. Stay focused on your academics while we handle the rest.</li>
+                <li><strong>Customizable Preferences:</strong> Choose the notifications you care about the most. Manage your preferences effortlessly through our intuitive interface.</li>
+                <li><strong>Efficient Communication:</strong> Receive accurate and timely updates, helping you stay organized and well-prepared for all academic activities.</li>
             </ul>
-            <p>To begin receiving notifications, please ensure that you have registered and updated your preferences through your profile.</p>
-            <p>We hope that NOTIFII enhances your academic experience by providing timely updates and streamlining communication.</p>
-            <p>Best regards,<br>Notifii team, PSG Tech</p>
-            <p><a href="https://notifii.vercel.app">notifii website</a></p>
-            <p>If you have any queries, feel free to contact us at <a href="mailto:22z212@psgtech.ac.in">22z212@psgtech.ac.in</a>.</p>
+            <p>To start enjoying the benefits of NOTIFII, ensure you’ve completed your registration and customized your preferences via your profile.</p>
+            <p>We’re confident that NOTIFII will enhance your academic experience by keeping you informed and connected.</p>
+            <p>Best regards,<br>The NOTIFII Team, PSG Tech</p>
+            <p><a href="https://notifii.vercel.app">Visit the NOTIFII Website</a></p>
+            <p>For any questions, reach out to us at <a href="mailto:22z212@psgtech.ac.in">22z212@psgtech.ac.in</a>.</p>
         </body>
         </html>
         """
@@ -351,9 +351,28 @@ def mark_update(session):
 
 
 # Usage
-data = [
-    ("22Z304","9500915353")
+data = [ 
+    ('22Z369', '9655974180'),
+    ('22Z370', '8098116088'),
+    ('22Z371', '9820733639'),
+    ('22Z372', '9952362597'),
+    ('22Z373', '9842226523'),
+    ('22Z374', '9500250802'),
+    ('22Z375', '7005973116'),
+    ('22Z377', '9842781616'),
+    ('22Z378', '9840384279'),
+    ('22Z379', '9842762053'),
+    ('23Z461', '8754656950'),
+    ('23Z463', '9626505823'),
+    ('23Z464', '7708821117'),
+    ('23Z465', '8220240516'),
+    ('23Z466', '9443561272'),
+    ('23Z467', '9843096700')
 ]
+
+
+
+
 
 
 for rollNo, password in data:

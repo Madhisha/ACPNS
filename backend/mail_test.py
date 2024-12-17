@@ -1,3 +1,3 @@
 from scrapers.send_mail import send_email
 
-send_email("22z201@psgtech.ac.in", 'test mail', 'Test')
+print(send_email("22z235@psgtech.ac.in", 'test mail', 'Test'))

@@ -1,4 +1,4 @@
-from db import user_collection
+from database import user_collection
 import re
 from scrapers.send_mail import send_email
 
